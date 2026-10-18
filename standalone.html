@@ -1,0 +1,2595 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalBridge | AI Emergency Copilot (108 / 112 Dispatch)</title>
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- SignalBridge Dark Ops Styling -->
+  <style>
+/* ==========================================================================
+   SIGNALBRIDGE - Emergency Dispatch Operator Dashboard Styling
+   High-Contrast Dark Theme for Tactical Helplines & Projector Visibility
+   ========================================================================== */
+
+:root {
+  --bg-dark: #0a0e17;
+  --bg-card: #111827;
+  --bg-subcard: #162032;
+  --border-color: #1f293d;
+  --border-highlight: #374151;
+  
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-dark: #6b7280;
+
+  --color-red: #ef4444;
+  --color-red-glow: rgba(239, 68, 68, 0.25);
+  --color-orange: #f59e0b;
+  --color-yellow: #fbbf24;
+  --color-green: #10b981;
+  --color-blue: #3b82f6;
+  --color-cyan: #06b6d4;
+  
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body.dark-theme {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.05) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(239, 68, 68, 0.05) 0%, transparent 20%);
+}
+
+/* --------------------------------------------------------------------------
+   HEADER
+   -------------------------------------------------------------------------- */
+.app-header {
+  height: 58px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-radar {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.15rem;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+.brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.brand-title span {
+  color: var(--color-cyan);
+}
+
+.brand-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-subcard);
+}
+
+.status-live {
+  border-color: rgba(16, 185, 129, 0.3);
+  color: var(--color-green);
+}
+
+.pulsing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-green);
+  box-shadow: 0 0 8px var(--color-green);
+  animation: pulse-green 1.5s infinite;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+.clock-display {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  background: var(--bg-dark);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+/* --------------------------------------------------------------------------
+   STAGE 0: VISIBLE PIPELINE DEBUG PANEL
+   -------------------------------------------------------------------------- */
+.debug-panel {
+  background: #090e18;
+  border-bottom: 1px solid var(--border-color);
+  padding: 8px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  z-index: 90;
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.debug-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.debug-status-text {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-cyan);
+}
+
+.debug-steps-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .debug-steps-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.debug-step {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 5px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.debug-step.ok {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.08);
+  color: #6ee7b7;
+}
+
+.debug-step.busy {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.08);
+  color: #fde047;
+}
+
+.debug-step.error {
+  border-color: rgba(239, 68, 68, 0.6);
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dark);
+}
+
+.step-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.step-dot.standby { background: #475569; }
+.step-dot.ok { background: var(--color-green); box-shadow: 0 0 6px var(--color-green); animation: pulse-green 1.2s infinite; }
+.step-dot.busy { background: var(--color-yellow); animation: pulse-yellow 1s infinite; }
+.step-dot.error { background: var(--color-red); box-shadow: 0 0 6px var(--color-red); animation: pulse-red 1s infinite; }
+
+.step-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.debug-error-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--color-red);
+  color: #fca5a5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   DASHBOARD 3-COLUMN GRID
+   -------------------------------------------------------------------------- */
+.dashboard-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 380px 430px 1fr;
+  gap: 14px;
+  padding: 14px;
+  overflow: hidden;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
+
+.panel {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.panel-header {
+  padding: 12px 16px;
+  background: var(--bg-subcard);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* --------------------------------------------------------------------------
+   LEFT PANEL: CALLS & LIVE MICROPHONE
+   -------------------------------------------------------------------------- */
+.panel-call {
+  overflow-y: auto;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+/* LIVE MICROPHONE CARD */
+.live-mic-card {
+  margin: 10px 14px 0;
+  padding: 12px;
+  background: linear-gradient(180deg, #131c2e, #0e1626);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.08);
+}
+
+.live-mic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mic-status-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.live-mic-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-call-start {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  transition: all 0.2s;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-call-start:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.btn-call-end {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  transition: all 0.2s;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.lang-selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lang-dropdown {
+  width: 100%;
+  background: var(--bg-subcard);
+  border: 1px solid var(--border-color);
+  color: #fff;
+  padding: 7px 9px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.lang-dropdown:focus {
+  border-color: var(--color-cyan);
+}
+
+.mic-feedback-detail {
+  font-size: 0.72rem;
+  color: var(--color-cyan);
+  background: #090e18;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+/* PRESET DEMO SCENARIOS */
+.quick-call-selector {
+  padding: 0 14px;
+}
+
+.section-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 5px;
+}
+
+.call-buttons-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.btn-preset {
+  background-color: var(--bg-subcard);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 7px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.btn-preset:hover {
+  background-color: #1e293b;
+  border-color: var(--color-cyan);
+}
+
+.btn-preset.active {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15));
+  border-color: var(--color-cyan);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+.caller-meta-card {
+  margin: 0 14px;
+  padding: 7px 11px;
+  background-color: var(--bg-subcard);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-item:last-child {
+  grid-column: span 2;
+}
+
+.meta-label {
+  font-size: 0.62rem;
+  color: var(--text-dark);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.meta-val {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.transcript-section {
+  padding: 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transcript-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tag-live {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--color-green);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.5px;
+}
+
+.tag-live i {
+  font-size: 0.5rem;
+}
+
+.tag-live.listening {
+  color: var(--color-red);
+}
+
+.tag-live.listening i {
+  animation: pulse-red 1s infinite;
+}
+
+/* LIVE SPEECH TRANSCRIPT VIEWER */
+.transcript-viewer-box {
+  width: 100%;
+  background-color: #0b111e;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: #e2e8f0;
+  padding: 11px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  min-height: 100px;
+  max-height: 140px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.interim-text {
+  color: #7dd3fc;
+  font-style: italic;
+  opacity: 0.85;
+  margin-left: 4px;
+}
+
+.transcript-placeholder {
+  color: #475569;
+  font-style: italic;
+  font-size: 0.78rem;
+}
+
+.call-actions-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px;
+}
+
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-stream {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  flex: 1.2;
+}
+
+.btn-stream:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #fff;
+  flex: 1;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0369a1, #1d4ed8);
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-subcard);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+.operator-prompts-card {
+  margin: 0 14px;
+  background: #0d1522;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.sub-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.questions-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.questions-list li {
+  font-size: 0.76rem;
+  color: #d1d5db;
+  line-height: 1.35;
+  padding-left: 15px;
+  position: relative;
+}
+
+.questions-list li::before {
+  content: "âž”";
+  position: absolute;
+  left: 0;
+  color: var(--color-yellow);
+  font-size: 0.7rem;
+}
+
+/* --------------------------------------------------------------------------
+   MIDDLE PANEL: INCIDENT CARD
+   -------------------------------------------------------------------------- */
+.panel-incident {
+  overflow-y: auto;
+}
+
+.incident-card-content {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.incident-type-box {
+  background: var(--bg-subcard);
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.label-muted {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: 0.5px;
+}
+
+.type-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 3px;
+}
+
+.triage-metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.metric-card {
+  background: var(--bg-subcard);
+  border: 1px solid var(--border-color);
+  padding: 8px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.metric-icon {
+  font-size: 1.3rem;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.metric-val {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.keywords-box {
+  background: var(--bg-subcard);
+  border: 1px solid var(--border-color);
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.keyword-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.chip {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* First Aid Guidance Card */
+.first-aid-card {
+  background: #0f172a;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.first-aid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.fa-title-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.first-aid-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.btn-audio {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid var(--color-cyan);
+  color: var(--color-cyan);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-audio:hover {
+  background: var(--color-cyan);
+  color: #000;
+}
+
+.first-aid-disclaimer {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--color-orange);
+  background: rgba(245, 158, 11, 0.1);
+  padding: 3px 6px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+
+.first-aid-steps {
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.first-aid-steps li {
+  font-size: 0.78rem;
+  color: #e2e8f0;
+  line-height: 1.35;
+}
+
+/* Dispatch Controller */
+.dispatch-control-box {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.operator-note {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.btn-dispatch {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-dispatch:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.dispatch-alert {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--color-green);
+  color: #6ee7b7;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   RIGHT PANEL: MAP & LANDMARKS
+   -------------------------------------------------------------------------- */
+.panel-map {
+  display: flex;
+  flex-direction: column;
+}
+
+.landmark-resolved-banner {
+  padding: 10px 14px;
+  background: #0d1522;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.landmark-pin-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid var(--color-blue);
+  color: var(--color-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.landmark-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.landmark-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.landmark-coords {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-cyan);
+}
+
+.landmark-matched-clause {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.landmark-matched-clause strong {
+  color: #fde047;
+}
+
+.map-container {
+  flex: 1;
+  min-height: 360px;
+  background-color: #0b0f19;
+  z-index: 10;
+}
+
+.known-landmarks-box {
+  padding: 10px 14px;
+  background: var(--bg-subcard);
+  border-top: 1px solid var(--border-color);
+}
+
+.landmark-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.landmark-pill {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  color: #cbd5e1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.landmark-pill:hover {
+  border-color: var(--color-blue);
+  color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   BADGES & ANIMATIONS
+   -------------------------------------------------------------------------- */
+.badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.badge-critical {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid var(--color-red);
+  box-shadow: 0 0 10px var(--color-red-glow);
+  animation: pulse-red 1.5s infinite;
+}
+
+.badge-high {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid var(--color-orange);
+}
+
+.badge-info {
+  background-color: rgba(6, 182, 212, 0.15);
+  color: var(--color-cyan);
+  border: 1px solid var(--color-cyan);
+}
+
+.badge-success {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--color-green);
+  border: 1px solid var(--color-green);
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+@keyframes pulse-yellow {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+/* Custom Leaflet Map Pin Pulse */
+.custom-emergency-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-pulse {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 3px solid #fff;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+  animation: pulse-red 1.2s infinite;
+}
+
+/* Utilities */
+.text-red { color: var(--color-red); }
+.text-orange { color: var(--color-orange); }
+.text-yellow { color: var(--color-yellow); }
+.text-green { color: var(--color-green); }
+.text-blue { color: var(--color-blue); }
+.text-cyan { color: var(--color-cyan); }
+
+</style>
+</head>
+<body class="dark-theme">
+
+  <!-- TOP APP BAR -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo-radar">
+        <i class="fa-solid fa-tower-broadcast"></i>
+      </div>
+      <div>
+        <div class="brand-title">SIGNAL<span>BRIDGE</span></div>
+        <div class="brand-sub">AI Copilot for 108 / 112 Emergency Helplines</div>
+      </div>
+    </div>
+
+    <!-- Live Status Heartbeat -->
+    <div class="system-status">
+      <div class="status-pill status-live">
+        <span class="pulsing-dot"></span>
+        <span class="status-text" id="system-status-indicator">SYSTEM READY â€¢ 108 DISPATCH</span>
+      </div>
+      <div class="clock-display" id="live-clock">00:00:00</div>
+    </div>
+  </header>
+
+  <!-- STAGE 0: VISIBLE PIPELINE DEBUG PANEL -->
+  <div class="debug-panel" id="debug-panel">
+    <div class="debug-header">
+      <span class="debug-title"><i class="fa-solid fa-stethoscope text-cyan"></i> PIPELINE DIAGNOSTICS (STAGE 0)</span>
+      <span class="debug-status-text" id="debug-status-text">Status: Idle. Click 'Start live call' or pick a sample scenario</span>
+    </div>
+    <div class="debug-steps-row">
+      <div class="debug-step" id="step-1">
+        <span class="step-num">1</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Mic On</span>
+      </div>
+      <div class="debug-step" id="step-2">
+        <span class="step-num">2</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Speech Captured</span>
+      </div>
+      <div class="debug-step" id="step-3">
+        <span class="step-num">3</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Sent to /api/analyze</span>
+      </div>
+      <div class="debug-step" id="step-4">
+        <span class="step-num">4</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Result Received</span>
+      </div>
+      <div class="debug-step" id="step-5">
+        <span class="step-num">5</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Card/Map Rendered</span>
+      </div>
+    </div>
+    <!-- JavaScript Error Banner -->
+    <div id="debug-error-banner" class="debug-error-banner hidden">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span id="debug-error-text">No errors.</span>
+    </div>
+  </div>
+
+  <!-- MAIN OPERATOR WORKSPACE -->
+  <main class="dashboard-grid">
+
+    <!-- LEFT PANEL: CALL CONTROLS & LIVE TRANSCRIPTION -->
+    <section class="panel panel-call">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fa-solid fa-headset text-cyan"></i>
+          <span>Incoming Emergency Call</span>
+        </div>
+        <span class="badge badge-info" id="call-state-badge">IDLE</span>
+      </div>
+
+      <!-- STAGE 1: LIVE CALL MICROPHONE CONTROLS -->
+      <div class="live-mic-card">
+        <div class="live-mic-header">
+          <span class="section-label"><i class="fa-solid fa-microphone-lines"></i> Live Microphone Call:</span>
+          <span class="mic-status-label" id="mic-status-label">Mic Inactive</span>
+        </div>
+
+        <div class="live-mic-actions">
+          <button id="btn-start-live-call" class="btn btn-call-start">
+            <i class="fa-solid fa-phone"></i> Start live call
+          </button>
+          <button id="btn-end-live-call" class="btn btn-call-end hidden">
+            <i class="fa-solid fa-phone-slash"></i> End call
+          </button>
+        </div>
+
+        <!-- Language Selector Dropdown -->
+        <div class="lang-selector-group">
+          <label for="live-lang-select" class="section-label">
+            <i class="fa-solid fa-language text-cyan"></i> Caller Language:
+          </label>
+          <select id="live-lang-select" class="lang-dropdown">
+            <option value="en-IN" selected>ðŸ‡®ðŸ‡³ English (Indian Accent) [en-IN]</option>
+            <option value="ta-IN">ðŸ‡®ðŸ‡³ Tamil (à®¤à®®à®¿à®´à¯) [ta-IN]</option>
+            <option value="hi-IN">ðŸ‡®ðŸ‡³ Hindi (à¤¹à¤¿à¤¨à¥à¤¦à¥€) [hi-IN]</option>
+            <option value="te-IN">ðŸ‡®ðŸ‡³ Telugu (à°¤à±†à°²à±à°—à±) [te-IN]</option>
+            <option value="kn-IN">ðŸ‡®ðŸ‡³ Kannada (à²•à²¨à³à²¨à²¡) [kn-IN]</option>
+            <option value="ml-IN">ðŸ‡®ðŸ‡³ Malayalam (à´®à´²à´¯à´¾à´³à´‚) [ml-IN]</option>
+            <option value="bn-IN">ðŸ‡®ðŸ‡³ Bengali (à¦¬à¦¾à¦‚à¦²à¦¾) [bn-IN]</option>
+            <option value="mr-IN">ðŸ‡®ðŸ‡³ Marathi (à¤®à¤°à¤¾à¤ à¥€) [mr-IN]</option>
+          </select>
+        </div>
+
+        <div class="mic-feedback-detail" id="mic-feedback-detail">
+          Click "Start live call" and speak into your laptop microphone as the caller.
+        </div>
+      </div>
+
+      <!-- Quick Preset Demo Scenarios -->
+      <div class="quick-call-selector">
+        <label class="section-label"><i class="fa-solid fa-bolt"></i> Or Load Demo Scenarios:</label>
+        <div class="call-buttons-row">
+          <button class="btn btn-preset active" data-call-idx="0">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <span>1. Cardiac Arrest (Hindi/Eng)</span>
+          </button>
+          <button class="btn btn-preset" data-call-idx="1">
+            <i class="fa-solid fa-motorcycle"></i>
+            <span>2. Road Collision (Tanglish)</span>
+          </button>
+          <button class="btn btn-preset" data-call-idx="2">
+            <i class="fa-solid fa-fire"></i>
+            <span>3. Building Fire (Hindi/Eng)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Caller Metadata Card -->
+      <div class="caller-meta-card">
+        <div class="meta-item">
+          <span class="meta-label">CALLER IDENTIFIER</span>
+          <span class="meta-val" id="caller-name">Rohan Malhotra</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">INCOMING CHANNEL</span>
+          <span class="meta-val text-cyan" id="caller-phone">Line 108 / Live Mic</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">LANGUAGE SELECTED</span>
+          <span class="meta-val" id="caller-lang">English (Indian)</span>
+        </div>
+      </div>
+
+      <!-- Live Transcript Display Box -->
+      <div class="transcript-section">
+        <div class="transcript-header">
+          <span class="section-label"><i class="fa-solid fa-waveform-lines"></i> Call Audio Transcript</span>
+          <span class="tag-live" id="stream-indicator"><i class="fa-solid fa-circle"></i> READY</span>
+        </div>
+        
+        <!-- Live Speech View: Finalized solid text + Interim lighter text -->
+        <div class="transcript-viewer-box" id="transcript-viewer">
+          <span id="transcript-final-text"></span>
+          <span id="transcript-interim-text" class="interim-text"></span>
+          <span id="transcript-placeholder" class="transcript-placeholder">Spoken words appear here in real-time. Lighter text shows interim speech; solid text shows finished sentences.</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="call-actions-row">
+        <button id="btn-play-stream" class="btn btn-stream">
+          <i class="fa-solid fa-play"></i> Play Sample Call
+        </button>
+        <button id="btn-stop-stream" class="btn btn-secondary hidden" title="Stop live streaming">
+          <i class="fa-solid fa-stop"></i> Stop
+        </button>
+        <button id="btn-analyze" class="btn btn-primary">
+          <i class="fa-solid fa-microchip"></i> Analyze Now
+        </button>
+        <button id="btn-clear" class="btn btn-secondary" title="Clear transcript">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+
+      <!-- Operator Follow-up Questions Card -->
+      <div class="operator-prompts-card">
+        <div class="sub-header">
+          <i class="fa-solid fa-circle-question text-yellow"></i>
+          <span>Ask Caller Next (Dynamic AI Suggestions)</span>
+        </div>
+        <ul id="operator-questions-list" class="questions-list">
+          <li>Start a live call or select a demo scenario above.</li>
+        </ul>
+      </div>
+    </section>
+
+
+    <!-- MIDDLE PANEL: INCIDENT CARD & DISPATCH TRIAGE -->
+    <section class="panel panel-incident">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fa-solid fa-clipboard-check text-green"></i>
+          <span>Auto-Filled Incident Card</span>
+        </div>
+        <div id="severity-badge" class="badge badge-critical">CRITICAL</div>
+      </div>
+
+      <!-- Incident Triage Summary -->
+      <div class="incident-card-content">
+        <div class="incident-type-box">
+          <div class="label-muted">CLASSIFIED EMERGENCY TYPE</div>
+          <div class="type-title" id="incident-type-title">Cardiac Arrest / Severe Medical Emergency</div>
+        </div>
+
+        <div class="triage-metrics-row">
+          <div class="metric-card">
+            <div class="metric-icon text-red"><i class="fa-solid fa-truck-medical"></i></div>
+            <div class="metric-info">
+              <span class="metric-label">SUGGESTED RESPONDER</span>
+              <span class="metric-val" id="suggested-responder">Ambulance (108) - ALS</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon text-orange"><i class="fa-solid fa-users"></i></div>
+            <div class="metric-info">
+              <span class="metric-label">CASUALTIES HURT</span>
+              <span class="metric-val" id="casualty-count">1 Person</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Matched Keywords / Evidence -->
+        <div class="keywords-box">
+          <span class="metric-label">DETECTED CRITICAL KEYWORDS</span>
+          <div id="keyword-chips" class="keyword-chips">
+            <span class="chip">chest pain</span>
+            <span class="chip">collapsed</span>
+            <span class="chip">pasina</span>
+          </div>
+        </div>
+
+        <!-- First Aid Protocol Box -->
+        <div class="first-aid-card">
+          <div class="first-aid-header">
+            <div class="fa-title-group">
+              <i class="fa-solid fa-kit-medical text-red"></i>
+              <span class="first-aid-title" id="first-aid-title">CPR / Suspected Cardiac Arrest</span>
+            </div>
+            <button id="btn-speak-firstaid" class="btn btn-audio" title="Read first-aid guidance aloud to caller">
+              <i class="fa-solid fa-volume-high"></i> Voice Prompt
+            </button>
+          </div>
+          <div class="first-aid-disclaimer" id="first-aid-disclaimer">
+            <i class="fa-solid fa-triangle-exclamation"></i> VERIFY AGAINST AHA / RED CROSS GUIDELINES
+          </div>
+          <ol id="first-aid-steps" class="first-aid-steps">
+            <li>Ensure scene safety.</li>
+            <li>Place hands on center of chest. Push hard and fast at 100-120 bpm.</li>
+          </ol>
+        </div>
+
+        <!-- Final Human Operator Control: Dispatch Button -->
+        <div class="dispatch-control-box">
+          <div class="operator-note">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Human-in-the-Loop: Operator confirms dispatch details</span>
+          </div>
+          <button id="btn-dispatch" class="btn btn-dispatch">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>APPROVE & DISPATCH RESPONDER</span>
+          </button>
+          <div id="dispatch-alert" class="dispatch-alert hidden">
+            <i class="fa-solid fa-circle-check"></i> DISPATCH LOGGED & TRANSMITTED TO 108 UNIT
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- RIGHT PANEL: TACTICAL LANDMARK RESOLUTION & MAP -->
+    <section class="panel panel-map">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fa-solid fa-location-crosshairs text-blue"></i>
+          <span>Landmark-to-Map Resolution</span>
+        </div>
+        <span class="badge badge-success" id="landmark-confidence-badge">95% Confirmed</span>
+      </div>
+
+      <!-- Landmark Detail Bar -->
+      <div class="landmark-resolved-banner">
+        <div class="landmark-pin-icon">
+          <i class="fa-solid fa-map-pin"></i>
+        </div>
+        <div class="landmark-text">
+          <div class="landmark-name" id="landmark-name">Panagal Park, T. Nagar, Chennai</div>
+          <div class="landmark-coords" id="landmark-coords">
+            <i class="fa-solid fa-compass"></i> GPS: 13.0416Â° N, 80.2337Â° E
+          </div>
+          <div class="landmark-matched-clause">
+            Caller phrased: <strong id="matched-phrase-text">"panagal park"</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Container -->
+      <div id="emergency-map" class="map-container"></div>
+
+      <!-- Quick Landmark Directory -->
+      <div class="known-landmarks-box">
+        <span class="metric-label">REGISTERED LANDMARKS QUICK NAV</span>
+        <div class="landmark-chips" id="quick-landmark-chips">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Main Application Script -->
+  <script>
+/**
+ * SIGNALBRIDGE - Operator Command Center Frontend Logic
+ * Stage 0: 5-Step Pipeline Diagnostics
+ * Stage 1: Continuous One-Person Live Microphone Speech-to-Text with Auto-Restart
+ * Dual Mode: Live FastAPI Backend (/api/...) + Full Offline Client-side Triage Fallback
+ */
+
+const API_BASE = window.location.protocol.startsWith("http") ? "" : "http://127.0.0.1:8000";
+
+let map = null;
+let currentEmergencyMarker = null;
+let sampleCallsList = [];
+let landmarksList = [];
+let currentVoicePrompt = "";
+let currentSelectedCallIndex = 0;
+
+// Streaming Simulation State
+let streamInterval = null;
+let isStreaming = false;
+
+// Stage 1: Live Speech-to-Text State
+let liveRecognition = null;
+let isLiveCallActive = false;
+let accumulatedFinalTranscript = "";
+
+// -----------------------------------------------------------------------------
+// EMBEDDED OFFLINE DATASETS (For zero-dependency local file execution)
+// -----------------------------------------------------------------------------
+const DEFAULT_SAMPLE_CALLS = [
+  {
+    "id": "call_cardiac_01",
+    "title": "Call 1: Cardiac Arrest (English & Hindi)",
+    "scenario": "Severe Chest Pain & Collapse",
+    "language": "English / Hindi mix",
+    "caller_name": "Rohan Malhotra",
+    "caller_phone": "+91 98410 77213",
+    "transcript": "Hello 108! Emergency! Please send an ambulance immediately! My uncle suddenly collapsed here at Panagal Park, T. Nagar near the bus stop. He is clutching his chest tightly and gasping for breath! Bahut pasina aa raha hai aur left arm mein heavy pain hai. He is not answering me properly, he is falling unconscious! Only 1 person is hurt, please hurry up, dil ka daura lag raha hai!",
+    "expected_landmark": "panagal_park_tnagar",
+    "expected_type": "CARDIAC_ARREST",
+    "expected_severity": "CRITICAL"
+  },
+  {
+    "id": "call_accident_02",
+    "title": "Call 2: Road Collision (Tamil + English)",
+    "scenario": "Two-Wheeler Crash on Flyover",
+    "language": "Tamil + English (Tanglish)",
+    "caller_name": "Senthil Nathan",
+    "caller_phone": "+91 94441 88920",
+    "transcript": "Aiyo sir emergency! Anna flyover kitta oru bayangaramaana bike accident! Two people fell down from the bike, bike skid aagi road divider mela crash aayiduchu. Rendu perukkum bayangarama blood flowing from leg and head. Oru aalu romba severe head injury, unconscious-aa irukkaar, moochu vida kashtapadraar! Please send 108 ambulance fast, Gemini flyover top slope!",
+    "expected_landmark": "anna_flyover",
+    "expected_type": "ROAD_TRAUMA",
+    "expected_severity": "CRITICAL"
+  },
+  {
+    "id": "call_fire_03",
+    "title": "Call 3: Building Fire (English + Hindi)",
+    "scenario": "Commercial Kitchen LPG Cylinder Explosion",
+    "language": "English + Hindi mix",
+    "caller_name": "Ananya Sharma",
+    "caller_phone": "+91 97909 55432",
+    "transcript": "Emergency! Fire, huge fire near Central Railway Station! Commercial building second floor hotel kitchen mein gas cylinder phat gaya! Huge black smoke coming out and flames are spreading to upper floors. At least 4 people are trapped inside near the fire exit crying for help! People are choking from smoke inhalation! Please send fire brigade tenders and ambulance immediately!",
+    "expected_landmark": "central_railway_station",
+    "expected_type": "FIRE_AND_BURNS",
+    "expected_severity": "CRITICAL"
+  }
+];
+
+const DEFAULT_LANDMARKS = [
+  {
+    "id": "anna_flyover",
+    "name": "Anna Flyover (Gemini Circle), Thousand Lights, Chennai",
+    "lat": 13.0532,
+    "lng": 80.2520,
+    "aliases": [
+      "anna flyover", "gemini flyover", "gemini circle", "anna bridge",
+      "anna flyover kitta", "flyover", "gemini bridge", "à®…à®£à¯à®£à®¾ à®®à¯‡à®®à¯à®ªà®¾à®²à®®à¯", "à¤«à¥à¤²à¤¾à¤ˆà¤“à¤µà¤°"
+    ],
+    "description": "Major junction connecting Mount Road and Nungambakkam"
+  },
+  {
+    "id": "kapaleeshwarar_temple",
+    "name": "Kapaleeshwarar Temple, Mylapore, Chennai",
+    "lat": 13.0335,
+    "lng": 80.2694,
+    "aliases": [
+      "kapaleeshwarar temple", "mylapore temple", "kapali kovil",
+      "temple after the flyover", "temple near flyover",
+      "near the temple after the flyover", "temple kitta", "kovil kitta",
+      "mandir", "à®•à¯‹à®µà®¿à®²à¯", "à¤®à¤‚à¤¦à¤¿à¤°"
+    ],
+    "description": "Historic 7th-century temple in Mylapore, south of Gemini Flyover"
+  },
+  {
+    "id": "panagal_park_tnagar",
+    "name": "Panagal Park, T. Nagar, Chennai",
+    "lat": 13.0416,
+    "lng": 80.2337,
+    "aliases": [
+      "panagal park", "t nagar", "t.nagar", "thyagaraya nagar",
+      "ranganathan street", "usman road", "pondy bazaar", "à®Ÿà®¿ à®¨à®•à®°à¯"
+    ],
+    "description": "Commercial shopping hub and transit center in Central Chennai"
+  },
+  {
+    "id": "central_railway_station",
+    "name": "Puratchi Thalaivar Dr. M.G. Ramachandran Central Railway Station, Chennai",
+    "lat": 13.0827,
+    "lng": 80.2755,
+    "aliases": [
+      "central railway station", "chennai central", "central station",
+      "railway station", "ripon building", "park town",
+      "à®šà¯†à®©à¯à®Ÿà¯à®°à®²à¯ à®°à®¯à®¿à®²à¯ à®¨à®¿à®²à¯ˆà®¯à®®à¯", "à¤¸à¥‡à¤‚à¤Ÿà¥à¤°à¤² à¤°à¥‡à¤²à¤µà¥‡ à¤¸à¥à¤Ÿà¥‡à¤¶à¤¨"
+    ],
+    "description": "Primary railway terminus in North Chennai with heavy public transit"
+  },
+  {
+    "id": "kathipara_junction",
+    "name": "Kathipara Cloverleaf Junction, Guindy, Chennai",
+    "lat": 13.0067,
+    "lng": 80.2025,
+    "aliases": [
+      "kathipara", "kathipara junction", "guindy flyover",
+      "kathipara bridge", "guindy industrial estate", "guindy metro", "à®•à®¤à¯à®¤à®¿à®ªà¯à®ªà®¾à®°à®¾"
+    ],
+    "description": "Largest cloverleaf clover interchange in South Asia connecting GST and Inner Ring Road"
+  },
+  {
+    "id": "marina_beach_lighthouse",
+    "name": "Marina Beach Light House, Santhome, Chennai",
+    "lat": 13.0399,
+    "lng": 80.2790,
+    "aliases": [
+      "marina beach", "marina lighthouse", "light house",
+      "lighthouse", "kamarajar salai", "santhome beach", "à®®à¯†à®°à®¿à®©à®¾ à®•à®Ÿà®±à¯à®•à®°à¯ˆ"
+    ],
+    "description": "Coastal public promenade along Kamarajar Salai"
+  },
+  {
+    "id": "koyambedu_bus_stand",
+    "name": "Puratchi Thalaivar Dr. MGR Bus Terminus (CMBT), Koyambedu, Chennai",
+    "lat": 13.0694,
+    "lng": 80.2057,
+    "aliases": [
+      "koyambedu bus stand", "koyambedu bus terminus", "koyambedu",
+      "cmbt", "koyambedu market", "à®•à¯‹à®¯à®®à¯à®ªà¯‡à®Ÿà¯"
+    ],
+    "description": "Principal inter-city bus terminus in Chennai connecting all southern districts"
+  }
+];
+
+const DEFAULT_FIRST_AID = {
+  "CARDIAC_ARREST": {
+    "title": "CPR / Suspected Cardiac Arrest",
+    "disclaimer": "VERIFY AGAINST AHA / RED CROSS GUIDELINES. Operator must confirm unconsciousness and absence of normal breathing before advising chest compressions.",
+    "steps": [
+      "Ensure the scene is safe for the caller and patient.",
+      "Check responsiveness: Shake shoulders gently and shout 'Are you okay?'",
+      "Check breathing: Look at chest for 5 to 10 seconds. If not breathing or only gasping, start CPR.",
+      "Place patient flat on their back on a firm, flat surface.",
+      "Place the heel of one hand on the center of the chest (lower half of breastbone). Place other hand on top, interlocking fingers.",
+      "Push hard and fast: 100 to 120 compressions per minute (to the beat of 'Stayin' Alive'). Allow full chest recoil.",
+      "Compress to a depth of at least 2 inches (5 cm). Do not stop until paramedics arrive or an AED is ready."
+    ],
+    "voice_prompt": "Place the person flat on their back. Put both hands in the center of their chest. Push down hard and fast, two times every second, until the ambulance arrives."
+  },
+  "SEVERE_BLEEDING": {
+    "title": "Severe Bleeding & Hemorrhage Control",
+    "disclaimer": "VERIFY AGAINST RED CROSS FIRST AID PROTOCOLS. Do not remove objects deeply embedded in the wound.",
+    "steps": [
+      "Ensure immediate scene safety and protect yourself from blood exposure if possible.",
+      "Apply direct, firm pressure on the wound using a clean cloth, sterile gauze, or hands.",
+      "Do not remove soaked dressings; apply additional cloths directly over existing ones.",
+      "If bleeding is from an arm or leg and does not stop with direct pressure, apply an emergency tourniquet 2-3 inches above the wound (not over a joint).",
+      "Keep the patient lying down, warm, and calm to prevent hemorrhagic shock."
+    ],
+    "voice_prompt": "Take a clean cloth or towel. Press down directly on the wound with both hands. Keep pressing firmly. Do not lift the cloth to check."
+  },
+  "FIRE_AND_BURNS": {
+    "title": "Fire Emergency & Thermal Burn Protocol",
+    "disclaimer": "VERIFY AGAINST NATIONAL FIRE PROTECTION ASSOCIATION & RED CROSS FIRST AID. Immediate evacuation takes absolute priority over first aid.",
+    "steps": [
+      "EVACUATE IMMEDIATELY: Get everyone out of the building. Do not use elevators.",
+      "If smoke is present, stay low to the floor where air is cleaner. Cover mouth and nose with a damp cloth if available.",
+      "If clothes catch fire: STOP, DROP, and ROLL.",
+      "For thermal burns: Cool immediately with cool (not ice-cold) running water for at least 10 to 20 minutes.",
+      "Do NOT pop blisters. Do NOT apply ice, butter, oil, or home remedies to burn wounds.",
+      "Cover burns loosely with a clean, dry, non-stick cloth or sterile dressing."
+    ],
+    "voice_prompt": "Evacuate the building immediately. Stay low under the smoke. Once outside in fresh air, cool any burns under running tap water for ten minutes."
+  },
+  "ROAD_TRAUMA": {
+    "title": "Road Accident / Polytrauma Protocol",
+    "disclaimer": "VERIFY AGAINST ATLS (ADVANCED TRAUMA LIFE SUPPORT) BYSTANDER FIRST RESPONDER PROTOCOL. Do not move injured victims unless there is immediate danger of fire or explosion.",
+    "steps": [
+      "Secure the accident scene: Turn on hazard lights or place warning markers so passing vehicles do not cause secondary collisions.",
+      "DO NOT MOVE the victim unless there is imminent fire or submerged water risk (suspected spinal cord injury).",
+      "If a motorcycle rider is wearing a helmet, DO NOT REMOVE the helmet unless airway is completely blocked.",
+      "Check airway and breathing without tilting the neck excessively (use jaw-thrust if trained).",
+      "Control any major spurting bleeding with firm direct pressure.",
+      "Keep the victim warm with a jacket or blanket while awaiting 108 ambulance."
+    ],
+    "voice_prompt": "Do not move the injured person unless there is immediate fire danger. If they are wearing a helmet, leave it on. Keep them calm and warm until the ambulance arrives."
+  },
+  "CHOKING": {
+    "title": "Severe Airway Obstruction / Choking",
+    "disclaimer": "VERIFY AGAINST RED CROSS HEIMLICH / ABDOMINAL THRUST GUIDELINES. Only intervene if the person cannot cough, speak, or breathe.",
+    "steps": [
+      "Ask 'Are you choking?' If they can cough forcefully or speak, encourage them to keep coughing.",
+      "If victim cannot breathe, talk, or make sound: Stand behind them slightly to one side.",
+      "Deliver 5 sharp back blows between shoulder blades with the heel of your hand.",
+      "Perform 5 abdominal thrusts (Heimlich maneuver).",
+      "Repeat 5 blows and 5 thrusts until object is expelled or person becomes unconscious."
+    ],
+    "voice_prompt": "Lean the person slightly forward. Give five sharp blows between their shoulder blades with the heel of your hand. If still choking, give five inward and upward abdominal thrusts."
+  }
+};
+
+const EMERGENCY_KEYWORDS = {
+  "CARDIAC_ARREST": [
+    "heart attack", "chest pain", "cardiac", "collapsed", "unconscious",
+    "dil ka daura", "seene mein dard", "nenju vali", "mayakkam",
+    "breathing difficulty", "gasping", "left arm pain", "pasina", "sweating heavily",
+    "pulse", "not waking up", "falling down", "fainted"
+  ],
+  "ROAD_TRAUMA": [
+    "accident", "bike accident", "car crash", "collision", "skid", "divider",
+    "hit and run", "head injury", "blood", "bleeding", "broken bone", "fracture",
+    "bike skid", "road crash", "vandi muttiduchu", "rathinam", "chot",
+    "haadsa", "gadi crash", "trauma", "run over"
+  ],
+  "FIRE_AND_BURNS": [
+    "fire", "smoke", "flames", "burning", "gas cylinder", "cylinder burst",
+    "explosion", "blast", "thee", "neruppu", "aag", "phat gaya",
+    "fire exit", "trapped inside", "smoke inhalation", "burns", "blaze"
+  ],
+  "CHOKING": [
+    "choking", "food stuck", "cannot breathe", "throat", "swallowed",
+    "moochu muttuthu", "saans nahi aa rahi", "gala dab raha hai", "airway"
+  ]
+};
+
+const CASUALTY_WORD_MAP = {
+  "one": 1, "oru": 1, "ek": 1, "single": 1,
+  "two": 2, "rendu": 2, "do": 2, "both": 2,
+  "three": 3, "moonu": 3, "teen": 3,
+  "four": 4, "naalu": 4, "char": 4,
+  "five": 5, "anju": 5, "paanch": 5,
+  "six": 6, "aaru": 6, "chhah": 6
+};
+
+// Catch Global JavaScript Errors for Stage 0 Diagnostics
+window.addEventListener("error", (e) => {
+  showDebugError(`JS Error: ${e.message} (${e.filename}:${e.lineno})`);
+  setDebugStep(5, "error", "Render Error");
+});
+
+window.addEventListener("unhandledrejection", (e) => {
+  showDebugError(`Unhandled Promise: ${e.reason}`);
+});
+
+document.addEventListener("DOMContentLoaded", async () => {
+  initClock();
+  initMap();
+  await loadLandmarks();
+  await loadSampleCalls();
+  setupEventListeners();
+  initWebSpeechAPI();
+
+  // Load first demo scenario by default
+  if (sampleCallsList.length > 0) {
+    selectSampleCall(0, false);
+  }
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * STAGE 0: PIPELINE DIAGNOSTICS CONTROLLER (5 STEPS)
+ * --------------------------------------------------------------------------
+ */
+function setDebugStep(stepNum, status, label) {
+  const stepEl = document.getElementById(`step-${stepNum}`);
+  if (!stepEl) return;
+
+  stepEl.classList.remove("ok", "busy", "error");
+  const dot = stepEl.querySelector(".step-dot");
+  if (dot) {
+    dot.className = `step-dot ${status}`;
+  }
+
+  if (status === "ok") stepEl.classList.add("ok");
+  else if (status === "busy") stepEl.classList.add("busy");
+  else if (status === "error") stepEl.classList.add("error");
+
+  const statusLabel = document.getElementById("debug-status-text");
+  if (statusLabel && label) {
+    statusLabel.textContent = `[Step ${stepNum}] ${label}`;
+  }
+}
+
+function showDebugError(msg) {
+  console.error("[SignalBridge Diagnostic]", msg);
+  const banner = document.getElementById("debug-error-banner");
+  const textEl = document.getElementById("debug-error-text");
+  if (banner && textEl) {
+    banner.classList.remove("hidden");
+    textEl.textContent = msg;
+  }
+}
+
+function clearDebugError() {
+  const banner = document.getElementById("debug-error-banner");
+  if (banner) banner.classList.add("hidden");
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 1. LIVE TIME CLOCK
+ * --------------------------------------------------------------------------
+ */
+function initClock() {
+  const clockEl = document.getElementById("live-clock");
+  if (!clockEl) return;
+  function update() {
+    const now = new Date();
+    clockEl.textContent = now.toTimeString().split(" ")[0];
+  }
+  update();
+  setInterval(update, 1000);
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 2. LEAFLET EMERGENCY MAP INITIALIZATION
+ * --------------------------------------------------------------------------
+ */
+function initMap() {
+  const defaultCenter = [13.0416, 80.2337]; // Central Chennai (Panagal Park)
+  
+  if (typeof L === "undefined") {
+    console.warn("Leaflet library not yet loaded.");
+    return;
+  }
+
+  map = L.map("emergency-map", {
+    zoomControl: true,
+    attributionControl: false
+  }).setView(defaultCenter, 13);
+
+  // CartoDB Dark Matter tiles
+  const darkTiles = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    maxZoom: 19,
+    subdomains: "abcd"
+  });
+
+  darkTiles.on("tileerror", function() {
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19
+    }).addTo(map);
+  });
+
+  darkTiles.addTo(map);
+
+  const pulseIcon = L.divIcon({
+    className: "custom-emergency-marker",
+    html: '<div class="marker-pulse"></div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11]
+  });
+
+  currentEmergencyMarker = L.marker(defaultCenter, { icon: pulseIcon }).addTo(map);
+  currentEmergencyMarker.bindPopup("<b>Emergency Location</b><br>Panagal Park, T. Nagar").openPopup();
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 3. LOAD LANDMARKS & SAMPLE CALLS (WITH BUILT-IN FALLBACK)
+ * --------------------------------------------------------------------------
+ */
+async function loadLandmarks() {
+  try {
+    const res = await fetch(`${API_BASE}/api/landmarks`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    landmarksList = await res.json();
+  } catch (err) {
+    console.warn("Using offline landmarks catalog:", err.message);
+    landmarksList = DEFAULT_LANDMARKS;
+  }
+  renderLandmarkChips();
+}
+
+function renderLandmarkChips() {
+  const container = document.getElementById("quick-landmark-chips");
+  if (!container) return;
+  container.innerHTML = "";
+
+  landmarksList.forEach(l => {
+    const pill = document.createElement("button");
+    pill.className = "landmark-pill";
+    pill.textContent = l.name.split(",")[0];
+    pill.title = l.description || l.name;
+    pill.addEventListener("click", () => {
+      focusLocation(l.lat, l.lng, l.name, `Manual map navigation: ${l.name}`);
+    });
+    container.appendChild(pill);
+  });
+}
+
+async function loadSampleCalls() {
+  try {
+    const res = await fetch(`${API_BASE}/api/sample-calls`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    sampleCallsList = await res.json();
+  } catch (err) {
+    console.warn("Using offline sample scenarios catalog:", err.message);
+    sampleCallsList = DEFAULT_SAMPLE_CALLS;
+  }
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 4. SELECT AND LOAD SAMPLE SCENARIO (DEMO PRESET)
+ * --------------------------------------------------------------------------
+ */
+function selectSampleCall(index, autoAnalyze = true) {
+  if (!sampleCallsList[index]) return;
+  stopStreaming();
+  if (isLiveCallActive) endLiveCall();
+
+  currentSelectedCallIndex = index;
+  const call = sampleCallsList[index];
+
+  document.querySelectorAll(".btn-preset").forEach((b, idx) => {
+    b.classList.toggle("active", idx === index);
+  });
+
+  document.getElementById("caller-name").textContent = call.caller_name || "Demo Caller";
+  document.getElementById("caller-phone").textContent = call.caller_phone || "Line 108";
+  document.getElementById("caller-lang").textContent = call.language || "Multi-lingual";
+
+  // Set transcript display
+  setTranscriptDisplay(call.transcript, "");
+
+  // Diagnostics steps for sample scenario
+  setDebugStep(1, "ok", "Sample Audio Ready");
+  setDebugStep(2, "ok", `Sample Text Loaded (${call.transcript.split(" ").length} words)`);
+
+  if (autoAnalyze) {
+    triggerAnalysis();
+  }
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * STAGE 1: WEB SPEECH API (CONTINUOUS LIVE RECOGNITION WITH AUTO-RESTART)
+ * --------------------------------------------------------------------------
+ */
+function initWebSpeechAPI() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    const detail = document.getElementById("mic-feedback-detail");
+    if (detail) {
+      detail.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Web Speech API not supported in this browser. Please open in Google Chrome or Microsoft Edge.</span>';
+    }
+    setDebugStep(1, "error", "Browser Unsupported");
+    return;
+  }
+
+  liveRecognition = new SpeechRecognition();
+  liveRecognition.continuous = true;       // Keep listening across pauses
+  liveRecognition.interimResults = true;   // Real-time interim feedback while speaking
+  liveRecognition.maxAlternatives = 1;
+
+  const langSelect = document.getElementById("live-lang-select");
+  liveRecognition.lang = langSelect ? langSelect.value : "en-IN";
+
+  liveRecognition.onstart = () => {
+    console.log("[WebSpeech] Recognition started. Lang:", liveRecognition.lang);
+    setDebugStep(1, "ok", "Microphone Active");
+    setDebugStep(2, "busy", "Listening for speech sounds...");
+
+    document.getElementById("call-state-badge").textContent = "LISTENING";
+    document.getElementById("call-state-badge").className = "badge badge-critical";
+    document.getElementById("mic-status-label").innerHTML = '<span style="color:#10b981;">â— Live Recording</span>';
+    document.getElementById("mic-feedback-detail").innerHTML = 
+      '<span style="color:#10b981;">â— Mic open. Speak as the caller â€” words will stream below live!</span>';
+
+    const indicator = document.getElementById("stream-indicator");
+    indicator.className = "tag-live listening";
+    indicator.innerHTML = '<i class="fa-solid fa-circle"></i> LISTENING LIVE...';
+  };
+
+  liveRecognition.onresult = (event) => {
+    let interimText = "";
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      const piece = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        accumulatedFinalTranscript += (accumulatedFinalTranscript ? " " : "") + piece.trim();
+      } else {
+        interimText += piece;
+      }
+    }
+
+    // Render solid finalized text + lighter interim text
+    setTranscriptDisplay(accumulatedFinalTranscript, interimText);
+
+    // Diagnostics Step 2 (Speech text captured)
+    const totalWords = (accumulatedFinalTranscript + " " + interimText).trim().split(/\s+/).filter(Boolean).length;
+    setDebugStep(2, "ok", `Captured ${totalWords} words live`);
+  };
+
+  liveRecognition.onerror = (event) => {
+    console.warn("[WebSpeech] Error event:", event.error);
+
+    if (event.error === "no-speech") {
+      // Normal browser silence timeout; do not terminate call
+      return;
+    }
+
+    if (event.error === "not-allowed") {
+      setDebugStep(1, "error", "Mic Permission Denied");
+      showDebugError("Microphone permission denied! Click the lock/mic icon in Chrome's address bar, set Microphone to 'Allow', and refresh.");
+      endLiveCall();
+      return;
+    }
+
+    if (event.error === "network") {
+      setDebugStep(2, "error", "Network Error");
+      showDebugError("Speech recognition network error. Verify your internet connection.");
+      return;
+    }
+
+    setDebugStep(2, "error", `Speech error: ${event.error}`);
+  };
+
+  liveRecognition.onend = () => {
+    console.log("[WebSpeech] Recognition ended. Active call flag:", isLiveCallActive);
+    // Key Feature: Auto-Restart! If Chrome stops on silence, restart immediately!
+    if (isLiveCallActive) {
+      try {
+        liveRecognition.start();
+        console.log("[WebSpeech] Auto-restarted continuous speech recognition.");
+      } catch (err) {
+        console.warn("Auto-restart notice:", err);
+      }
+    } else {
+      setDebugStep(1, "standby", "Call Ended");
+      setDebugStep(2, "standby", "Microphone Inactive");
+      document.getElementById("call-state-badge").textContent = "ENDED";
+      document.getElementById("call-state-badge").className = "badge badge-info";
+      document.getElementById("mic-status-label").textContent = "Mic Inactive";
+      document.getElementById("mic-feedback-detail").textContent = "Call ended. Operator can review notes or dispatch.";
+
+      const indicator = document.getElementById("stream-indicator");
+      indicator.className = "tag-live";
+      indicator.innerHTML = '<i class="fa-solid fa-circle"></i> READY';
+    }
+  };
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 5. LIVE CALL CONTROLS: START / END CALL
+ * --------------------------------------------------------------------------
+ */
+function startLiveCall() {
+  clearDebugError();
+  stopStreaming();
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("SpeechRecognition is not available in your browser. Please run SignalBridge in Google Chrome or Microsoft Edge!");
+    return;
+  }
+
+  isLiveCallActive = true;
+  accumulatedFinalTranscript = "";
+  setTranscriptDisplay("", "");
+
+  document.getElementById("btn-start-live-call").classList.add("hidden");
+  document.getElementById("btn-end-live-call").classList.remove("hidden");
+
+  // Read selected language from dropdown
+  const langSelect = document.getElementById("live-lang-select");
+  const selectedLang = langSelect ? langSelect.value : "en-IN";
+  liveRecognition.lang = selectedLang;
+
+  document.getElementById("caller-name").textContent = "Live Caller (Microphone)";
+  document.getElementById("caller-phone").textContent = "Live Line 108";
+  document.getElementById("caller-lang").textContent = langSelect.options[langSelect.selectedIndex].text.split("[")[0].trim();
+
+  // Reset Stage 0 Diagnostics Steps
+  setDebugStep(1, "busy", "Requesting Microphone Access...");
+  setDebugStep(2, "standby", "Waiting for speech...");
+  setDebugStep(3, "standby", "Waiting for analysis trigger...");
+  setDebugStep(4, "standby", "Waiting for AI response...");
+  setDebugStep(5, "standby", "Waiting for render...");
+
+  try {
+    liveRecognition.start();
+  } catch (err) {
+    console.warn("Recognition start notice:", err);
+  }
+}
+
+function endLiveCall() {
+  isLiveCallActive = false;
+
+  document.getElementById("btn-start-live-call").classList.remove("hidden");
+  document.getElementById("btn-end-live-call").classList.add("hidden");
+
+  if (liveRecognition) {
+    try {
+      liveRecognition.stop();
+    } catch (e) {
+      console.warn("Notice stopping recognition:", e);
+    }
+  }
+}
+
+function setTranscriptDisplay(finalText, interimText) {
+  const finalEl = document.getElementById("transcript-final-text");
+  const interimEl = document.getElementById("transcript-interim-text");
+  const placeholderEl = document.getElementById("transcript-placeholder");
+  const viewerBox = document.getElementById("transcript-viewer");
+
+  if (finalEl) finalEl.textContent = finalText;
+  if (interimEl) interimEl.textContent = interimText ? (finalText ? " " : "") + interimText : "";
+
+  if (placeholderEl) {
+    placeholderEl.style.display = (finalText || interimText) ? "none" : "inline";
+  }
+
+  if (viewerBox) {
+    viewerBox.scrollTop = viewerBox.scrollHeight;
+  }
+}
+
+function getFullTranscriptText() {
+  const finalEl = document.getElementById("transcript-final-text");
+  const interimEl = document.getElementById("transcript-interim-text");
+  const finalStr = finalEl ? finalEl.textContent : "";
+  const interimStr = interimEl ? interimEl.textContent : "";
+  return (finalStr + " " + interimStr).trim();
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 6. SIMULATION: WORD-BY-WORD CALL STREAMING
+ * --------------------------------------------------------------------------
+ */
+function playSampleCallStream() {
+  const call = sampleCallsList[currentSelectedCallIndex];
+  if (!call) return;
+
+  if (isLiveCallActive) endLiveCall();
+  stopStreaming();
+  isStreaming = true;
+
+  setTranscriptDisplay("", "");
+
+  const streamIndicator = document.getElementById("stream-indicator");
+  streamIndicator.className = "tag-live listening";
+  streamIndicator.innerHTML = '<i class="fa-solid fa-circle"></i> STREAMING SCENARIO...';
+
+  document.getElementById("btn-play-stream").classList.add("hidden");
+  document.getElementById("btn-stop-stream").classList.remove("hidden");
+
+  const words = call.transcript.split(" ");
+  let wordIndex = 0;
+  let currentAccumulated = "";
+
+  streamInterval = setInterval(() => {
+    if (wordIndex < words.length) {
+      const nextWord = words[wordIndex];
+      currentAccumulated += (currentAccumulated ? " " : "") + nextWord;
+      setTranscriptDisplay(currentAccumulated, "");
+      wordIndex++;
+
+      setDebugStep(1, "ok", "Sample Audio Stream Active");
+      setDebugStep(2, "ok", `Streamed ${wordIndex}/${words.length} words`);
+
+      const isPunctuation = nextWord.endsWith(".") || nextWord.endsWith("!") || nextWord.endsWith("?");
+      if (wordIndex % 5 === 0 || isPunctuation || wordIndex === words.length) {
+        triggerAnalysisSilently(currentAccumulated);
+      }
+    } else {
+      stopStreaming();
+    }
+  }, 120);
+}
+
+function stopStreaming() {
+  if (streamInterval) {
+    clearInterval(streamInterval);
+    streamInterval = null;
+  }
+  isStreaming = false;
+
+  const streamIndicator = document.getElementById("stream-indicator");
+  if (streamIndicator && !isLiveCallActive) {
+    streamIndicator.className = "tag-live";
+    streamIndicator.innerHTML = '<i class="fa-solid fa-circle"></i> READY';
+  }
+
+  const btnPlay = document.getElementById("btn-play-stream");
+  const btnStop = document.getElementById("btn-stop-stream");
+  if (btnPlay) btnPlay.classList.remove("hidden");
+  if (btnStop) btnStop.classList.add("hidden");
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 7. CLIENT-SIDE EMERGENCY TRIAGE ENGINE (OFFLINE MATCHING)
+ * --------------------------------------------------------------------------
+ */
+function clientSideExtractIncidentCard(rawTranscript, callerName = "Caller", callerPhone = "Line 108") {
+  const textLower = (rawTranscript || "").toLowerCase();
+
+  // 1. Detect Emergency Type & Keywords
+  let bestType = "GENERAL_EMERGENCY";
+  let maxScore = 0;
+  let matchedKeywords = [];
+
+  for (const [key, words] of Object.entries(EMERGENCY_KEYWORDS)) {
+    let score = 0;
+    const currentMatches = [];
+    for (const kw of words) {
+      if (textLower.includes(kw)) {
+        score++;
+        currentMatches.push(kw);
+      }
+    }
+    if (score > maxScore) {
+      maxScore = score;
+      bestType = key;
+      matchedKeywords = currentMatches;
+    }
+  }
+
+  const displayLabels = {
+    "CARDIAC_ARREST": "Cardiac Arrest / Severe Medical Emergency",
+    "ROAD_TRAUMA": "High-Impact Road Crash / Polytrauma",
+    "FIRE_AND_BURNS": "Structural Fire / Hazardous Blaze",
+    "CHOKING": "Severe Airway Choking Incident",
+    "GENERAL_EMERGENCY": "General Medical / Helpline Assistance"
+  };
+
+  // 2. Extract Casualties
+  let casualtyCount = 1;
+  const digitMatch = textLower.match(/(\d+)\s*(?:people|persons|victims|injured|per|aalu|log)/);
+  if (digitMatch) {
+    casualtyCount = parseInt(digitMatch[1], 10) || 1;
+  } else {
+    const atLeastMatch = textLower.match(/at least (\d+)/);
+    if (atLeastMatch) {
+      casualtyCount = parseInt(atLeastMatch[1], 10) || 1;
+    } else {
+      for (const [w, cnt] of Object.entries(CASUALTY_WORD_MAP)) {
+        const regex = new RegExp(`\\b${w}\\b`);
+        if (regex.test(textLower)) {
+          casualtyCount = Math.max(casualtyCount, cnt);
+        }
+      }
+    }
+  }
+
+  // 3. Severity & Responder
+  const criticalTriggers = [
+    "unconscious", "not breathing", "cylinder burst", "severe head injury",
+    "bleeding heavily", "blood flowing", "trapped", "dil ka daura", "gasping"
+  ];
+  const hasCritical = criticalTriggers.some(t => textLower.includes(t));
+
+  let severity = "MEDIUM";
+  if (bestType === "CARDIAC_ARREST" || bestType === "FIRE_AND_BURNS" || hasCritical || casualtyCount >= 2) {
+    severity = "CRITICAL";
+  } else if (bestType === "ROAD_TRAUMA" || bestType === "CHOKING") {
+    severity = "HIGH";
+  }
+
+  let suggestedResponder = "112 Integrated Emergency Response Service";
+  if (bestType === "CARDIAC_ARREST") suggestedResponder = "Ambulance (108) - Advanced Life Support (ALS)";
+  else if (bestType === "FIRE_AND_BURNS") suggestedResponder = "Fire & Rescue Tenders (101) + 108 Ambulance Unit";
+  else if (bestType === "ROAD_TRAUMA") suggestedResponder = "108 Emergency Ambulance + 112 Traffic & Police Patrol";
+  else if (bestType === "CHOKING") suggestedResponder = "Ambulance (108) - Paramedic Team";
+
+  // 4. Resolve Landmark
+  let bestLandmark = null;
+  let bestAlias = "";
+  let highestScore = 0;
+
+  const catalog = (landmarksList && landmarksList.length > 0) ? landmarksList : DEFAULT_LANDMARKS;
+  for (const lm of catalog) {
+    for (const alias of (lm.aliases || [])) {
+      const aliasLower = alias.toLowerCase();
+      if (textLower.includes(aliasLower) && aliasLower.length > highestScore) {
+        highestScore = aliasLower.length;
+        bestLandmark = lm;
+        bestAlias = alias;
+      }
+    }
+  }
+
+  let locationInfo;
+  if (bestLandmark) {
+    locationInfo = {
+      resolved: true,
+      id: bestLandmark.id,
+      name: bestLandmark.name,
+      lat: bestLandmark.lat,
+      lng: bestLandmark.lng,
+      description: bestLandmark.description || "",
+      matched_phrase: bestAlias,
+      confidence: highestScore > 8 ? 0.95 : 0.80
+    };
+  } else {
+    locationInfo = {
+      resolved: false,
+      id: "unknown_location",
+      name: "Location pending operator clarification",
+      lat: 13.0827,
+      lng: 80.2707,
+      description: "Caller mentioned no known registered landmark.",
+      matched_phrase: null,
+      confidence: 0.20
+    };
+  }
+
+  // 5. Questions
+  const questionsMap = {
+    "CARDIAC_ARREST": [
+      "Is the patient conscious right now? Can they open their eyes or squeeze your hand?",
+      "Are they breathing normally, or are they gasping / making snoring sounds?",
+      "Do you have someone nearby who knows CPR, or can you put the phone on speaker?"
+    ],
+    "ROAD_TRAUMA": [
+      "Are any victims trapped under the vehicles, or is anyone pinned down?",
+      "Is anyone bleeding profusely (spurting or pooling blood)?",
+      "Are the vehicles in the middle of active traffic? Is the scene safe from passing cars?"
+    ],
+    "FIRE_AND_BURNS": [
+      "Is everyone evacuated from the building, or is anyone still trapped inside?",
+      "Are there any gas cylinders, chemical storage, or electrical panels near the fire?",
+      "Which floor is burning, and are stairs/exits blocked by smoke?"
+    ],
+    "CHOKING": [
+      "Can the person cough, speak, or make any sound at all?",
+      "Has the person turned blue or lost consciousness?",
+      "Are you ready to perform back blows and abdominal thrusts?"
+    ]
+  };
+
+  const operatorQuestions = questionsMap[bestType] || [
+    "What is the exact street name or nearest building to your location?",
+    "How many people need immediate medical attention?",
+    "Is the patient responsive right now?"
+  ];
+
+  // 6. First Aid
+  const firstAid = DEFAULT_FIRST_AID[bestType] || {
+    title: "General Emergency First Response",
+    disclaimer: "VERIFY AGAINST LOCAL PROTOCOLS. Keep patient safe, calm, and monitor breathing until responders arrive.",
+    steps: [
+      "Keep the patient calm and comfortable.",
+      "Do not move the patient unless there is immediate danger.",
+      "Monitor breathing and responsiveness continuously."
+    ],
+    voice_prompt: "Stay on the line. Help is on the way. Keep the patient comfortable and do not move them."
+  };
+
+  return {
+    emergency_type: bestType,
+    emergency_display: displayLabels[bestType],
+    severity: severity,
+    suggested_responder: suggestedResponder,
+    casualty_count: casualtyCount,
+    location: locationInfo,
+    operator_questions: operatorQuestions,
+    first_aid: firstAid,
+    matched_keywords: matchedKeywords,
+    caller_info: { name: callerName, phone: callerPhone },
+    source: "local_triage_engine"
+  };
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 8. TRIGGER AI ANALYSIS VIA API OR CLIENT-SIDE ENGINE
+ * --------------------------------------------------------------------------
+ */
+async function triggerAnalysis() {
+  const transcript = getFullTranscriptText();
+  if (!transcript) {
+    alert("Please speak or select a scenario transcript first.");
+    return;
+  }
+
+  const callerName = document.getElementById("caller-name").textContent;
+  const callerPhone = document.getElementById("caller-phone").textContent;
+
+  setDebugStep(3, "busy", "Sending transcript to /api/analyze-text...");
+  const btnAnalyze = document.getElementById("btn-analyze");
+  btnAnalyze.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...';
+
+  try {
+    let data = null;
+
+    // Try FastAPI backend first
+    try {
+      const response = await fetch(`${API_BASE}/api/analyze-text`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: transcript,
+          caller_name: callerName,
+          caller_phone: callerPhone
+        })
+      });
+
+      if (response.ok) {
+        data = await response.json();
+        setDebugStep(3, "ok", `Sent ${transcript.length} chars (Live API)`);
+        setDebugStep(4, "ok", `200 OK (${data.emergency_display})`);
+      }
+    } catch (netErr) {
+      console.warn("Live API unreachable, activating client-side triage engine:", netErr.message);
+    }
+
+    // Seamless offline fallback if backend API is not running
+    if (!data) {
+      data = clientSideExtractIncidentCard(transcript, callerName, callerPhone);
+      setDebugStep(3, "ok", `Processed ${transcript.length} chars (Local Triage)`);
+      setDebugStep(4, "ok", `Engine Match (${data.emergency_display})`);
+    }
+
+    clearDebugError();
+    updateDashboardUI(data);
+    setDebugStep(5, "ok", `Card & Map Pin updated (${data.location.name.split(',')[0]})`);
+
+  } catch (error) {
+    console.error("Analysis error:", error);
+    setDebugStep(3, "error", "Failed to send");
+    setDebugStep(4, "error", error.message);
+    showDebugError(`Analysis Error: ${error.message}`);
+  } finally {
+    btnAnalyze.innerHTML = '<i class="fa-solid fa-microchip"></i> Analyze Now';
+  }
+}
+
+async function triggerAnalysisSilently(text) {
+  if (!text || text.split(" ").length < 3) return;
+
+  try {
+    let data = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/analyze-text`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text })
+      });
+      if (res.ok) {
+        data = await res.json();
+      }
+    } catch (_) {}
+
+    if (!data) {
+      data = clientSideExtractIncidentCard(text);
+    }
+
+    updateDashboardUI(data);
+    setDebugStep(3, "ok", "Transcript sent");
+    setDebugStep(4, "ok", "Analysis updated");
+    setDebugStep(5, "ok", "Card updated");
+  } catch (err) {
+    // Ignore silent intermediate errors
+  }
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 9. UPDATE DASHBOARD UI WITH EXTRACTED INCIDENT CARD DATA
+ * --------------------------------------------------------------------------
+ */
+function updateDashboardUI(data) {
+  // A. Incident Type & Severity
+  document.getElementById("incident-type-title").textContent = data.emergency_display;
+  
+  const severityBadge = document.getElementById("severity-badge");
+  severityBadge.textContent = data.severity;
+  severityBadge.className = "badge";
+  if (data.severity === "CRITICAL") {
+    severityBadge.classList.add("badge-critical");
+  } else if (data.severity === "HIGH") {
+    severityBadge.classList.add("badge-high");
+  } else {
+    severityBadge.classList.add("badge-info");
+  }
+
+  // B. Suggested Responder & Casualties
+  document.getElementById("suggested-responder").textContent = data.suggested_responder;
+  document.getElementById("casualty-count").textContent = 
+    data.casualty_count > 1 ? `${data.casualty_count} People Injured` : "1 Person";
+
+  // C. Keyword Chips
+  const chipsContainer = document.getElementById("keyword-chips");
+  chipsContainer.innerHTML = "";
+  if (data.matched_keywords && data.matched_keywords.length > 0) {
+    data.matched_keywords.forEach(kw => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = kw;
+      chipsContainer.appendChild(chip);
+    });
+  } else {
+    chipsContainer.innerHTML = '<span class="chip">triage rule match</span>';
+  }
+
+  // D. Operator Follow-Up Questions
+  const questionsList = document.getElementById("operator-questions-list");
+  questionsList.innerHTML = "";
+  if (data.operator_questions && data.operator_questions.length > 0) {
+    data.operator_questions.forEach(q => {
+      const li = document.createElement("li");
+      li.textContent = q;
+      questionsList.appendChild(li);
+    });
+  }
+
+  // E. First Aid Protocol
+  if (data.first_aid) {
+    document.getElementById("first-aid-title").textContent = data.first_aid.title;
+    document.getElementById("first-aid-disclaimer").innerHTML = 
+      `<i class="fa-solid fa-triangle-exclamation"></i> ${data.first_aid.disclaimer}`;
+
+    const stepsList = document.getElementById("first-aid-steps");
+    stepsList.innerHTML = "";
+    (data.first_aid.steps || []).forEach(step => {
+      const li = document.createElement("li");
+      li.textContent = step;
+      stepsList.appendChild(li);
+    });
+
+    currentVoicePrompt = data.first_aid.voice_prompt || (data.first_aid.steps || []).join(". ");
+  }
+
+  // F. Landmark Resolution and Map Pin
+  if (data.location && data.location.lat && data.location.lng) {
+    const loc = data.location;
+    document.getElementById("landmark-name").textContent = loc.name;
+    document.getElementById("landmark-coords").innerHTML = 
+      `<i class="fa-solid fa-compass"></i> GPS: ${loc.lat.toFixed(4)}Â° N, ${loc.lng.toFixed(4)}Â° E`;
+    
+    document.getElementById("matched-phrase-text").textContent = 
+      loc.matched_phrase ? `"${loc.matched_phrase}"` : "General Emergency Region";
+
+    const confBadge = document.getElementById("landmark-confidence-badge");
+    const confPct = Math.round((loc.confidence || 0.9) * 100);
+    confBadge.textContent = `${confPct}% Confirmed`;
+
+    focusLocation(loc.lat, loc.lng, loc.name, data.emergency_display);
+  }
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 10. MAP RE-CENTERING AND POPUP
+ * --------------------------------------------------------------------------
+ */
+function focusLocation(lat, lng, title, incidentInfo) {
+  if (!map) return;
+  map.flyTo([lat, lng], 15, {
+    animate: true,
+    duration: 1.2
+  });
+
+  if (currentEmergencyMarker) {
+    currentEmergencyMarker.setLatLng([lat, lng]);
+    currentEmergencyMarker.bindPopup(
+      `<strong>${title}</strong><br><span style="color:#ef4444;font-weight:700;">${incidentInfo}</span>`
+    ).openPopup();
+  }
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 11. EVENT LISTENERS SETUP
+ * --------------------------------------------------------------------------
+ */
+function setupEventListeners() {
+  // Live Mic Call buttons
+  const btnStartCall = document.getElementById("btn-start-live-call");
+  const btnEndCall = document.getElementById("btn-end-live-call");
+  if (btnStartCall) btnStartCall.addEventListener("click", startLiveCall);
+  if (btnEndCall) btnEndCall.addEventListener("click", endLiveCall);
+
+  // Language Dropdown change
+  const langSelect = document.getElementById("live-lang-select");
+  if (langSelect) {
+    langSelect.addEventListener("change", () => {
+      const selectedLang = langSelect.value;
+      if (liveRecognition) {
+        liveRecognition.lang = selectedLang;
+      }
+      document.getElementById("caller-lang").textContent = 
+        langSelect.options[langSelect.selectedIndex].text.split("[")[0].trim();
+
+      if (isLiveCallActive) {
+        try {
+          liveRecognition.stop();
+          setTimeout(() => { if (isLiveCallActive) liveRecognition.start(); }, 150);
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+    });
+  }
+
+  // Preset Demo Buttons
+  document.querySelectorAll(".btn-preset").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.getAttribute("data-call-idx"), 10);
+      selectSampleCall(idx, true);
+    });
+  });
+
+  // Play Sample Call (Word-by-word streaming effect)
+  const btnPlayStream = document.getElementById("btn-play-stream");
+  if (btnPlayStream) {
+    btnPlayStream.addEventListener("click", playSampleCallStream);
+  }
+
+  // Stop Stream
+  const btnStopStream = document.getElementById("btn-stop-stream");
+  if (btnStopStream) {
+    btnStopStream.addEventListener("click", stopStreaming);
+  }
+
+  // Analyze Now Button
+  const btnAnalyze = document.getElementById("btn-analyze");
+  if (btnAnalyze) {
+    btnAnalyze.addEventListener("click", triggerAnalysis);
+  }
+
+  // Clear Button
+  const btnClear = document.getElementById("btn-clear");
+  if (btnClear) {
+    btnClear.addEventListener("click", () => {
+      stopStreaming();
+      if (isLiveCallActive) endLiveCall();
+      accumulatedFinalTranscript = "";
+      setTranscriptDisplay("", "");
+      clearDebugError();
+      setDebugStep(2, "standby", "Transcript cleared");
+    });
+  }
+
+  // Speak First Aid Button (Browser built-in Web Speech API)
+  const btnSpeak = document.getElementById("btn-speak-firstaid");
+  if (btnSpeak) {
+    btnSpeak.addEventListener("click", () => {
+      if (!currentVoicePrompt) {
+        alert("No first-aid voice prompt available.");
+        return;
+      }
+      speakVoiceGuidance(currentVoicePrompt);
+    });
+  }
+
+  // Approve & Dispatch Button (Human-in-the-Loop)
+  const btnDispatch = document.getElementById("btn-dispatch");
+  if (btnDispatch) {
+    btnDispatch.addEventListener("click", () => {
+      const alertBox = document.getElementById("dispatch-alert");
+      alertBox.classList.remove("hidden");
+      alertBox.style.animation = "pulse-green 1s ease";
+      setTimeout(() => {
+        alertBox.classList.add("hidden");
+      }, 4000);
+    });
+  }
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 12. TEXT-TO-SPEECH (Browser Native - Rs 0 cost)
+ * --------------------------------------------------------------------------
+ */
+function speakVoiceGuidance(text) {
+  if (!("speechSynthesis" in window)) {
+    alert("Speech synthesis is not supported in this browser.");
+    return;
+  }
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.95;
+  utterance.pitch = 1.0;
+
+  const voices = window.speechSynthesis.getVoices();
+  const indianVoice = voices.find(v => v.lang.includes("en-IN") || v.lang.includes("hi-IN"));
+  if (indianVoice) {
+    utterance.voice = indianVoice;
+  }
+
+  window.speechSynthesis.speak(utterance);
+}
+
+</script>
+</body>
+</html>
+

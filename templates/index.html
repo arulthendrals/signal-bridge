@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalBridge | AI Emergency Copilot (108 / 112 Dispatch)</title>
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- SignalBridge Dark Ops Styling -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark-theme">
+
+  <!-- TOP APP BAR -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo-radar">
+        <i class="fa-solid fa-tower-broadcast"></i>
+      </div>
+      <div>
+        <div class="brand-title">SIGNAL<span>BRIDGE</span></div>
+        <div class="brand-sub">AI Copilot for 108 / 112 Emergency Helplines</div>
+      </div>
+    </div>
+
+    <!-- Live Status Heartbeat -->
+    <div class="system-status">
+      <div class="status-pill status-live">
+        <span class="pulsing-dot"></span>
+        <span class="status-text" id="system-status-indicator">SYSTEM READY • 108 DISPATCH</span>
+      </div>
+      <div class="clock-display" id="live-clock">00:00:00</div>
+    </div>
+  </header>
+
+  <!-- STAGE 0: VISIBLE PIPELINE DEBUG PANEL -->
+  <div class="debug-panel" id="debug-panel">
+    <div class="debug-header">
+      <span class="debug-title"><i class="fa-solid fa-stethoscope text-cyan"></i> PIPELINE DIAGNOSTICS (STAGE 0)</span>
+      <span class="debug-status-text" id="debug-status-text">Status: Idle. Click 'Start live call' or pick a sample scenario</span>
+    </div>
+    <div class="debug-steps-row">
+      <div class="debug-step" id="step-1">
+        <span class="step-num">1</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Mic On</span>
+      </div>
+      <div class="debug-step" id="step-2">
+        <span class="step-num">2</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Speech Captured</span>
+      </div>
+      <div class="debug-step" id="step-3">
+        <span class="step-num">3</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Sent to /api/analyze</span>
+      </div>
+      <div class="debug-step" id="step-4">
+        <span class="step-num">4</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Result Received</span>
+      </div>
+      <div class="debug-step" id="step-5">
+        <span class="step-num">5</span>
+        <span class="step-dot standby"></span>
+        <span class="step-text">Card/Map Rendered</span>
+      </div>
+    </div>
+    <!-- JavaScript Error Banner -->
+    <div id="debug-error-banner" class="debug-error-banner hidden">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span id="debug-error-text">No errors.</span>
+    </div>
+  </div>
+
+  <!-- MAIN OPERATOR WORKSPACE -->
+  <main class="dashboard-grid">
+
+    <!-- LEFT PANEL: CALL CONTROLS & LIVE TRANSCRIPTION -->
+    <section class="panel panel-call">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fa-solid fa-headset text-cyan"></i>
+          <span>Incoming Emergency Call</span>
+        </div>
+        <span class="badge badge-info" id="call-state-badge">IDLE</span>
+      </div>
+
+      <!-- STAGE 1: LIVE CALL MICROPHONE CONTROLS -->
+      <div class="live-mic-card">
+        <div class="live-mic-header">
+          <span class="section-label"><i class="fa-solid fa-microphone-lines"></i> Live Microphone Call:</span>
+          <span class="mic-status-label" id="mic-status-label">Mic Inactive</span>
+        </div>
+
+        <div class="live-mic-actions">
+          <button id="btn-start-live-call" class="btn btn-call-start">
+            <i class="fa-solid fa-phone"></i> Start live call
+          </button>
+          <button id="btn-end-live-call" class="btn btn-call-end hidden">
+            <i class="fa-solid fa-phone-slash"></i> End call
+          </button>
+        </div>
+
+        <!-- Language Selector Dropdown -->
+        <div class="lang-selector-group">
+          <label for="live-lang-select" class="section-label">
+            <i class="fa-solid fa-language text-cyan"></i> Caller Language:
+          </label>
+          <select id="live-lang-select" class="lang-dropdown">
+            <option value="en-IN" selected>🇮🇳 English (Indian Accent) [en-IN]</option>
+            <option value="ta-IN">🇮🇳 Tamil (தமிழ்) [ta-IN]</option>
+            <option value="hi-IN">🇮🇳 Hindi (हिन्दी) [hi-IN]</option>
+            <option value="te-IN">🇮🇳 Telugu (తెలుగు) [te-IN]</option>
+            <option value="kn-IN">🇮🇳 Kannada (ಕನ್ನಡ) [kn-IN]</option>
+            <option value="ml-IN">🇮🇳 Malayalam (മലയാളം) [ml-IN]</option>
+            <option value="bn-IN">🇮🇳 Bengali (বাংলা) [bn-IN]</option>
+            <option value="mr-IN">🇮🇳 Marathi (मराठी) [mr-IN]</option>
+          </select>
+        </div>
+
+        <div class="mic-feedback-detail" id="mic-feedback-detail">
+          Click "Start live call" and speak into your laptop microphone as the caller.
+        </div>
+      </div>
+
+      <!-- Quick Preset Demo Scenarios (Preserved!) -->
+      <div class="quick-call-selector">
+        <label class="section-label"><i class="fa-solid fa-bolt"></i> Or Load Demo Scenarios:</label>
+        <div class="call-buttons-row">
+          <button class="btn btn-preset active" data-call-idx="0">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <span>1. Cardiac Arrest (Hindi/Eng)</span>
+          </button>
+          <button class="btn btn-preset" data-call-idx="1">
+            <i class="fa-solid fa-motorcycle"></i>
+            <span>2. Road Collision (Tanglish)</span>
+          </button>
+          <button class="btn btn-preset" data-call-idx="2">
+            <i class="fa-solid fa-fire"></i>
+            <span>3. Building Fire (Hindi/Eng)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Caller Metadata Card -->
+      <div class="caller-meta-card">
+        <div class="meta-item">
+          <span class="meta-label">CALLER IDENTIFIER</span>
+          <span class="meta-val" id="caller-name">Rohan Malhotra</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">INCOMING CHANNEL</span>
+          <span class="meta-val text-cyan" id="caller-phone">Line 108 / Live Mic</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">LANGUAGE SELECTED</span>
+          <span class="meta-val" id="caller-lang">English (Indian)</span>
+        </div>
+      </div>
+
+      <!-- Live Transcript Display Box -->
+      <div class="transcript-section">
+        <div class="transcript-header">
+          <span class="section-label"><i class="fa-solid fa-waveform-lines"></i> Call Audio Transcript</span>
+          <span class="tag-live" id="stream-indicator"><i class="fa-solid fa-circle"></i> READY</span>
+        </div>
+        
+        <!-- Live Speech View: Finalized solid text + Interim lighter text -->
+        <div class="transcript-viewer-box" id="transcript-viewer">
+          <span id="transcript-final-text"></span>
+          <span id="transcript-interim-text" class="interim-text"></span>
+          <span id="transcript-placeholder" class="transcript-placeholder">Spoken words appear here in real-time. Lighter text shows interim speech; solid text shows finished sentences.</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="call-actions-row">
+        <button id="btn-play-stream" class="btn btn-stream">
+          <i class="fa-solid fa-play"></i> Play Sample Call
+        </button>
+        <button id="btn-stop-stream" class="btn btn-secondary hidden" title="Stop live streaming">
+          <i class="fa-solid fa-stop"></i> Stop
+        </button>
+        <button id="btn-analyze" class="btn btn-primary">
+          <i class="fa-solid fa-microchip"></i> Analyze Now
+        </button>
+        <button id="btn-clear" class="btn btn-secondary" title="Clear transcript">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+
+      <!-- Operator Follow-up Questions Card -->
+      <div class="operator-prompts-card">
+        <div class="sub-header">
+          <i class="fa-solid fa-circle-question text-yellow"></i>
+          <span>Ask Caller Next (Dynamic AI Suggestions)</span>
+        </div>
+        <ul id="operator-questions-list" class="questions-list">
+          <li>Start a live call or select a demo scenario above.</li>
+        </ul>
+      </div>
+    </section>
+
+
+    <!-- MIDDLE PANEL: INCIDENT CARD & DISPATCH TRIAGE -->
+    <section class="panel panel-incident">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fa-solid fa-clipboard-check text-green"></i>
+          <span>Auto-Filled Incident Card</span>
+        </div>
+        <div id="severity-badge" class="badge badge-critical">CRITICAL</div>
+      </div>
+
+      <!-- Incident Triage Summary -->
+      <div class="incident-card-content">
+        <div class="incident-type-box">
+          <div class="label-muted">CLASSIFIED EMERGENCY TYPE</div>
+          <div class="type-title" id="incident-type-title">Cardiac Arrest / Severe Medical Emergency</div>
+        </div>
+
+        <div class="triage-metrics-row">
+          <div class="metric-card">
+            <div class="metric-icon text-red"><i class="fa-solid fa-truck-medical"></i></div>
+            <div class="metric-info">
+              <span class="metric-label">SUGGESTED RESPONDER</span>
+              <span class="metric-val" id="suggested-responder">Ambulance (108) - ALS</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon text-orange"><i class="fa-solid fa-users"></i></div>
+            <div class="metric-info">
+              <span class="metric-label">CASUALTIES HURT</span>
+              <span class="metric-val" id="casualty-count">1 Person</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Matched Keywords / Evidence -->
+        <div class="keywords-box">
+          <span class="metric-label">DETECTED CRITICAL KEYWORDS</span>
+          <div id="keyword-chips" class="keyword-chips">
+            <span class="chip">chest pain</span>
+            <span class="chip">collapsed</span>
+            <span class="chip">pasina</span>
+          </div>
+        </div>
+
+        <!-- First Aid Protocol Box -->
+        <div class="first-aid-card">
+          <div class="first-aid-header">
+            <div class="fa-title-group">
+              <i class="fa-solid fa-kit-medical text-red"></i>
+              <span class="first-aid-title" id="first-aid-title">CPR / Suspected Cardiac Arrest</span>
+            </div>
+            <button id="btn-speak-firstaid" class="btn btn-audio" title="Read first-aid guidance aloud to caller">
+              <i class="fa-solid fa-volume-high"></i> Voice Prompt
+            </button>
+          </div>
+          <div class="first-aid-disclaimer" id="first-aid-disclaimer">
+            <i class="fa-solid fa-triangle-exclamation"></i> VERIFY AGAINST AHA / RED CROSS GUIDELINES
+          </div>
+          <ol id="first-aid-steps" class="first-aid-steps">
+            <li>Ensure scene safety.</li>
+            <li>Place hands on center of chest. Push hard and fast at 100-120 bpm.</li>
+          </ol>
+        </div>
+
+        <!-- Final Human Operator Control: Dispatch Button -->
+        <div class="dispatch-control-box">
+          <div class="operator-note">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Human-in-the-Loop: Operator confirms dispatch details</span>
+          </div>
+          <button id="btn-dispatch" class="btn btn-dispatch">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>APPROVE & DISPATCH RESPONDER</span>
+          </button>
+          <div id="dispatch-alert" class="dispatch-alert hidden">
+            <i class="fa-solid fa-circle-check"></i> DISPATCH LOGGED & TRANSMITTED TO 108 UNIT
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- RIGHT PANEL: TACTICAL LANDMARK RESOLUTION & MAP -->
+    <section class="panel panel-map">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fa-solid fa-location-crosshairs text-blue"></i>
+          <span>Landmark-to-Map Resolution</span>
+        </div>
+        <span class="badge badge-success" id="landmark-confidence-badge">95% Confirmed</span>
+      </div>
+
+      <!-- Landmark Detail Bar -->
+      <div class="landmark-resolved-banner">
+        <div class="landmark-pin-icon">
+          <i class="fa-solid fa-map-pin"></i>
+        </div>
+        <div class="landmark-text">
+          <div class="landmark-name" id="landmark-name">Panagal Park, T. Nagar, Chennai</div>
+          <div class="landmark-coords" id="landmark-coords">
+            <i class="fa-solid fa-compass"></i> GPS: 13.0416° N, 80.2337° E
+          </div>
+          <div class="landmark-matched-clause">
+            Caller phrased: <strong id="matched-phrase-text">"panagal park"</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Container -->
+      <div id="emergency-map" class="map-container"></div>
+
+      <!-- Quick Landmark Directory -->
+      <div class="known-landmarks-box">
+        <span class="metric-label">REGISTERED LANDMARKS QUICK NAV</span>
+        <div class="landmark-chips" id="quick-landmark-chips">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Main Application Script -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

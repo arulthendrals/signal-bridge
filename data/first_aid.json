@@ -1,0 +1,67 @@
+{
+  "CARDIAC_ARREST": {
+    "title": "CPR / Suspected Cardiac Arrest",
+    "disclaimer": "VERIFY AGAINST AHA / RED CROSS GUIDELINES. Operator must confirm unconsciousness and absence of normal breathing before advising chest compressions.",
+    "steps": [
+      "Ensure the scene is safe for the caller and patient.",
+      "Check responsiveness: Shake shoulders gently and shout 'Are you okay?'",
+      "Check breathing: Look at chest for 5 to 10 seconds. If not breathing or only gasping, start CPR.",
+      "Place patient flat on their back on a firm, flat surface.",
+      "Place the heel of one hand on the center of the chest (lower half of breastbone). Place other hand on top, interlocking fingers.",
+      "Push hard and fast: 100 to 120 compressions per minute (to the beat of 'Stayin' Alive'). Allow full chest recoil.",
+      "Compress to a depth of at least 2 inches (5 cm). Do not stop until paramedics arrive or an AED is ready."
+    ],
+    "voice_prompt": "Place the person flat on their back. Put both hands in the center of their chest. Push down hard and fast, two times every second, until the ambulance arrives."
+  },
+  "SEVERE_BLEEDING": {
+    "title": "Severe Bleeding & Hemorrhage Control",
+    "disclaimer": "VERIFY AGAINST RED CROSS FIRST AID PROTOCOLS. Do not remove objects deeply embedded in the wound.",
+    "steps": [
+      "Ensure immediate scene safety and protect yourself from blood exposure if possible.",
+      "Apply direct, firm pressure on the wound using a clean cloth, sterile gauze, or hands.",
+      "Do not remove soaked dressings; apply additional cloths directly over existing ones.",
+      "If bleeding is from an arm or leg and does not stop with direct pressure, apply an emergency tourniquet 2-3 inches above the wound (not over a joint).",
+      "Keep the patient lying down, warm, and calm to prevent hemorrhagic shock."
+    ],
+    "voice_prompt": "Take a clean cloth or towel. Press down directly on the wound with both hands. Keep pressing firmly. Do not lift the cloth to check."
+  },
+  "FIRE_AND_BURNS": {
+    "title": "Fire Emergency & Thermal Burn Protocol",
+    "disclaimer": "VERIFY AGAINST NATIONAL FIRE PROTECTION ASSOCIATION & RED CROSS FIRST AID. Immediate evacuation takes absolute priority over first aid.",
+    "steps": [
+      "EVACUATE IMMEDIATELY: Get everyone out of the building. Do not use elevators.",
+      "If smoke is present, stay low to the floor where air is cleaner. Cover mouth and nose with a damp cloth if available.",
+      "If clothes catch fire: STOP, DROP, and ROLL.",
+      "For thermal burns: Cool immediately with cool (not ice-cold) running water for at least 10 to 20 minutes.",
+      "Do NOT pop blisters. Do NOT apply ice, butter, oil, or home remedies to burn wounds.",
+      "Cover burns loosely with a clean, dry, non-stick cloth or sterile dressing."
+    ],
+    "voice_prompt": "Evacuate the building immediately. Stay low under the smoke. Once outside in fresh air, cool any burns under running tap water for ten minutes."
+  },
+  "ROAD_TRAUMA": {
+    "title": "Road Accident / Polytrauma Protocol",
+    "disclaimer": "VERIFY AGAINST ATLS (ADVANCED TRAUMA LIFE SUPPORT) BYSTANDER FIRST RESPONDER PROTOCOL. Do not move injured victims unless there is immediate danger of fire or explosion.",
+    "steps": [
+      "Secure the accident scene: Turn on hazard lights or place warning markers so passing vehicles do not cause secondary collisions.",
+      "DO NOT MOVE the victim unless there is imminent fire or submerged water risk (suspected spinal cord injury).",
+      "If a motorcycle rider is wearing a helmet, DO NOT REMOVE the helmet unless airway is completely blocked.",
+      "Check airway and breathing without tilting the neck excessively (use jaw-thrust if trained).",
+      "Control any major spurting bleeding with firm direct pressure.",
+      "Keep the victim warm with a jacket or blanket while awaiting 108 ambulance."
+    ],
+    "voice_prompt": "Do not move the injured person unless there is immediate fire danger. If they are wearing a helmet, leave it on. Keep them calm and warm until the ambulance arrives."
+  },
+  "CHOKING": {
+    "title": "Severe Airway Obstruction / Choking",
+    "disclaimer": "VERIFY AGAINST RED CROSS HEIMLICH / ABDOMINAL THRUST GUIDELINES. Only intervene if the person cannot cough, speak, or breathe.",
+    "steps": [
+      "Ask 'Are you choking?' If they can cough forcefully or speak, encourage them to keep coughing.",
+      "If victim cannot breathe, talk, or make sound: Stand behind them slightly to one side.",
+      "Deliver 5 sharp back blows between shoulder blades with the heel of your hand.",
+      "If obstruction remains, deliver 5 abdominal thrusts (Heimlich maneuver): Make a fist, place thumb-side just above navel, grasp with other hand, thrust upward and inward.",
+      "Repeat 5 back blows and 5 abdominal thrusts until object is expelled or patient loses consciousness.",
+      "If patient collapses and becomes unresponsive, immediately lower to floor and begin chest compressions (CPR)."
+    ],
+    "voice_prompt": "Stand behind the person. Give five sharp blows between the shoulder blades, followed by five quick inward and upward abdominal thrusts just above their navel."
+  }
+}

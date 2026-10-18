@@ -1,0 +1,122 @@
+[
+  {
+    "id": "anna_flyover",
+    "name": "Anna Flyover (Gemini Circle), Thousand Lights, Chennai",
+    "lat": 13.0532,
+    "lng": 80.2520,
+    "aliases": [
+      "anna flyover",
+      "gemini flyover",
+      "gemini circle",
+      "anna bridge",
+      "anna flyover kitta",
+      "flyover",
+      "gemini bridge",
+      "அண்ணா மேம்பாலம்",
+      "फ्लाईओवर"
+    ],
+    "description": "Major junction connecting Mount Road and Nungambakkam"
+  },
+  {
+    "id": "kapaleeshwarar_temple",
+    "name": "Kapaleeshwarar Temple, Mylapore, Chennai",
+    "lat": 13.0335,
+    "lng": 80.2694,
+    "aliases": [
+      "kapaleeshwarar temple",
+      "mylapore temple",
+      "kapali kovil",
+      "temple after the flyover",
+      "temple near flyover",
+      "near the temple after the flyover",
+      "temple kitta",
+      "kovil kitta",
+      "mandir",
+      "கோவில்",
+      "मंदिर"
+    ],
+    "description": "Historic 7th-century temple in Mylapore, south of Gemini Flyover"
+  },
+  {
+    "id": "panagal_park_tnagar",
+    "name": "Panagal Park, T. Nagar, Chennai",
+    "lat": 13.0416,
+    "lng": 80.2337,
+    "aliases": [
+      "panagal park",
+      "t nagar",
+      "t.nagar",
+      "thyagaraya nagar",
+      "ranganathan street",
+      "usman road",
+      "pondy bazaar",
+      "டி நகர்"
+    ],
+    "description": "Commercial shopping hub and transit center in Central Chennai"
+  },
+  {
+    "id": "central_railway_station",
+    "name": "Puratchi Thalaivar Dr. M.G. Ramachandran Central Railway Station, Chennai",
+    "lat": 13.0827,
+    "lng": 80.2755,
+    "aliases": [
+      "central railway station",
+      "chennai central",
+      "central station",
+      "railway station",
+      "ripon building",
+      "park town",
+      "சென்ட்ரல் ரயில் நிலையம்",
+      "सेंट्रल रेलवे स्टेशन"
+    ],
+    "description": "Primary railway terminus in North Chennai with heavy public transit"
+  },
+  {
+    "id": "kathipara_junction",
+    "name": "Kathipara Cloverleaf Junction, Guindy, Chennai",
+    "lat": 13.0067,
+    "lng": 80.2025,
+    "aliases": [
+      "kathipara",
+      "kathipara junction",
+      "guindy flyover",
+      "kathipara bridge",
+      "guindy industrial estate",
+      "guindy metro",
+      "கத்திப்பாரா"
+    ],
+    "description": "Largest cloverleaf clover interchange in South Asia connecting GST and Inner Ring Road"
+  },
+  {
+    "id": "marina_beach_lighthouse",
+    "name": "Marina Beach Light House, Santhome, Chennai",
+    "lat": 13.0399,
+    "lng": 80.2790,
+    "aliases": [
+      "marina beach",
+      "marina lighthouse",
+      "light house",
+      "lighthouse",
+      "kamarajar salai",
+      "santhome beach",
+      "மெரினா கடற்கரை"
+    ],
+    "description": "Coastal public promenade along Kamarajar Salai"
+  },
+  {
+    "id": "koyambedu_bus_stand",
+    "name": "Puratchi Thalaivar Dr. MGR Bus Terminus (CMBT), Koyambedu, Chennai",
+    "lat": 13.0694,
+    "lng": 80.2057,
+    "aliases": [
+      "koyambedu bus stand",
+      "koyambedu bus terminus",
+      "koyambedu",
+      "cmbt",
+      "koyambedu market",
+      "கோயம்பேடு"
+    ],
+    "description": "Principal inter-city bus terminus in Chennai connecting all southern districts"
+  }
+]
+

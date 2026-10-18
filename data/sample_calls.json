@@ -1,0 +1,38 @@
+[
+  {
+    "id": "call_cardiac_01",
+    "title": "Call 1: Cardiac Arrest (English & Hindi)",
+    "scenario": "Severe Chest Pain & Collapse",
+    "language": "English / Hindi mix",
+    "caller_name": "Rohan Malhotra",
+    "caller_phone": "+91 98410 77213",
+    "transcript": "Hello 108! Emergency! Please send an ambulance immediately! My uncle suddenly collapsed here at Panagal Park, T. Nagar near the bus stop. He is clutching his chest tightly and gasping for breath! Bahut pasina aa raha hai aur left arm mein heavy pain hai. He is not answering me properly, he is falling unconscious! Only 1 person is hurt, please hurry up, dil ka daura lag raha hai!",
+    "expected_landmark": "panagal_park_tnagar",
+    "expected_type": "CARDIAC_ARREST",
+    "expected_severity": "CRITICAL"
+  },
+  {
+    "id": "call_accident_02",
+    "title": "Call 2: Road Collision (Tamil + English)",
+    "scenario": "Two-Wheeler Crash on Flyover",
+    "language": "Tamil + English (Tanglish)",
+    "caller_name": "Senthil Nathan",
+    "caller_phone": "+91 94441 88920",
+    "transcript": "Aiyo sir emergency! Anna flyover kitta oru bayangaramaana bike accident! Two people fell down from the bike, bike skid aagi road divider mela crash aayiduchu. Rendu perukkum bayangarama blood flowing from leg and head. Oru aalu romba severe head injury, unconscious-aa irukkaar, moochu vida kashtapadraar! Please send 108 ambulance fast, Gemini flyover top slope!",
+    "expected_landmark": "anna_flyover",
+    "expected_type": "ROAD_TRAUMA",
+    "expected_severity": "CRITICAL"
+  },
+  {
+    "id": "call_fire_03",
+    "title": "Call 3: Building Fire (English + Hindi)",
+    "scenario": "Commercial Kitchen LPG Cylinder Explosion",
+    "language": "English + Hindi mix",
+    "caller_name": "Ananya Sharma",
+    "caller_phone": "+91 97909 55432",
+    "transcript": "Emergency! Fire, huge fire near Central Railway Station! Commercial building second floor hotel kitchen mein gas cylinder phat gaya! Huge black smoke coming out and flames are spreading to upper floors. At least 4 people are trapped inside near the fire exit crying for help! People are choking from smoke inhalation! Please send fire brigade tenders and ambulance immediately!",
+    "expected_landmark": "central_railway_station",
+    "expected_type": "FIRE_AND_BURNS",
+    "expected_severity": "CRITICAL"
+  }
+]
