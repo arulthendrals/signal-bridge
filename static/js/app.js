@@ -9,6 +9,7 @@ const API_BASE = window.location.protocol.startsWith("http") ? "" : "http://127.
 
 let map = null;
 let currentEmergencyMarker = null;
+let currentEmergencyCircle = null;
 let sampleCallsList = [];
 let landmarksList = [];
 let currentVoicePrompt = "";
@@ -73,7 +74,7 @@ const DEFAULT_LANDMARKS = [
     "lng": 80.2520,
     "aliases": [
       "anna flyover", "gemini flyover", "gemini circle", "anna bridge",
-      "anna flyover kitta", "flyover", "gemini bridge", "அண்ணா மேம்பாலம்", "फ्लाईओवर"
+      "anna flyover kitta", "flyover", "gemini bridge", "à®…à®£à¯à®£à®¾ à®®à¯‡à®®à¯à®ªà®¾à®²à®®à¯", "à¤«à¥à¤²à¤¾à¤ˆà¤“à¤µà¤°"
     ],
     "description": "Major junction connecting Mount Road and Nungambakkam"
   },
@@ -86,7 +87,7 @@ const DEFAULT_LANDMARKS = [
       "kapaleeshwarar temple", "mylapore temple", "kapali kovil",
       "temple after the flyover", "temple near flyover",
       "near the temple after the flyover", "temple kitta", "kovil kitta",
-      "mandir", "கோவில்", "मंदिर"
+      "mandir", "à®•à¯‹à®µà®¿à®²à¯", "à¤®à¤‚à¤¦à¤¿à¤°"
     ],
     "description": "Historic 7th-century temple in Mylapore, south of Gemini Flyover"
   },
@@ -97,7 +98,7 @@ const DEFAULT_LANDMARKS = [
     "lng": 80.2337,
     "aliases": [
       "panagal park", "t nagar", "t.nagar", "thyagaraya nagar",
-      "ranganathan street", "usman road", "pondy bazaar", "டி நகர்"
+      "ranganathan street", "usman road", "pondy bazaar", "à®Ÿà®¿ à®¨à®•à®°à¯"
     ],
     "description": "Commercial shopping hub and transit center in Central Chennai"
   },
@@ -109,7 +110,7 @@ const DEFAULT_LANDMARKS = [
     "aliases": [
       "central railway station", "chennai central", "central station",
       "railway station", "ripon building", "park town",
-      "சென்ட்ரல் ரயில் நிலையம்", "सेंट्रल रेलवे स्टेशन"
+      "à®šà¯†à®©à¯à®Ÿà¯à®°à®²à¯ à®°à®¯à®¿à®²à¯ à®¨à®¿à®²à¯ˆà®¯à®®à¯", "à¤¸à¥‡à¤‚à¤Ÿà¥à¤°à¤² à¤°à¥‡à¤²à¤µà¥‡ à¤¸à¥à¤Ÿà¥‡à¤¶à¤¨"
     ],
     "description": "Primary railway terminus in North Chennai with heavy public transit"
   },
@@ -120,7 +121,7 @@ const DEFAULT_LANDMARKS = [
     "lng": 80.2025,
     "aliases": [
       "kathipara", "kathipara junction", "guindy flyover",
-      "kathipara bridge", "guindy industrial estate", "guindy metro", "கத்திப்பாரா"
+      "kathipara bridge", "guindy industrial estate", "guindy metro", "à®•à®¤à¯à®¤à®¿à®ªà¯à®ªà®¾à®°à®¾"
     ],
     "description": "Largest cloverleaf clover interchange in South Asia connecting GST and Inner Ring Road"
   },
@@ -131,7 +132,7 @@ const DEFAULT_LANDMARKS = [
     "lng": 80.2790,
     "aliases": [
       "marina beach", "marina lighthouse", "light house",
-      "lighthouse", "kamarajar salai", "santhome beach", "மெரினா கடற்கரை"
+      "lighthouse", "kamarajar salai", "santhome beach", "à®®à¯†à®°à®¿à®©à®¾ à®•à®Ÿà®±à¯à®•à®°à¯ˆ"
     ],
     "description": "Coastal public promenade along Kamarajar Salai"
   },
@@ -142,7 +143,7 @@ const DEFAULT_LANDMARKS = [
     "lng": 80.2057,
     "aliases": [
       "koyambedu bus stand", "koyambedu bus terminus", "koyambedu",
-      "cmbt", "koyambedu market", "கோயம்பேடு"
+      "cmbt", "koyambedu market", "à®•à¯‹à®¯à®®à¯à®ªà¯‡à®Ÿà¯"
     ],
     "description": "Principal inter-city bus terminus in Chennai connecting all southern districts"
   }
@@ -260,6 +261,7 @@ window.addEventListener("unhandledrejection", (e) => {
 
 document.addEventListener("DOMContentLoaded", async () => {
   initClock();
+  initCallTimer();
   initMap();
   await loadLandmarks();
   await loadSampleCalls();
@@ -268,7 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load first demo scenario by default
   if (sampleCallsList.length > 0) {
-    selectSampleCall(0, false);
+    selectSampleCall(1, true); // Load Guindy Flyover Road Accident from PDF page 2 by default!
   }
 });
 
@@ -328,6 +330,18 @@ function initClock() {
   setInterval(update, 1000);
 }
 
+function initCallTimer() {
+  let seconds = 27;
+  const timerEl = document.getElementById("live-call-timer");
+  if (!timerEl) return;
+  setInterval(() => {
+    seconds++;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    timerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }, 1000);
+}
+
 /**
  * --------------------------------------------------------------------------
  * 2. LEAFLET EMERGENCY MAP INITIALIZATION
@@ -344,30 +358,74 @@ function initMap() {
   map = L.map("emergency-map", {
     zoomControl: true,
     attributionControl: false
-  }).setView(defaultCenter, 13);
+  }).setView(defaultCenter, 14);
 
-  // CartoDB Dark Matter tiles
-  const darkTiles = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  // 1. High-Resolution Esri World Imagery (Satellite) - 100% Free, Zero API Keys
+  const satelliteTiles = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
     maxZoom: 19,
-    subdomains: "abcd"
+    attribution: "&copy; Esri World Imagery"
   });
 
-  darkTiles.on("tileerror", function() {
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19
-    }).addTo(map);
+  // 2. Clear Road & Landmark Labels Overlay on Satellite (Hybrid View)
+  const labelOverlay = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19
   });
 
-  darkTiles.addTo(map);
+  // Combined Hybrid Satellite layer (Satellite Imagery + Street Labels)
+  const hybridSatellite = L.layerGroup([satelliteTiles, labelOverlay]);
 
-  const pulseIcon = L.divIcon({
-    className: "custom-emergency-marker",
-    html: '<div class="marker-pulse"></div>',
-    iconSize: [22, 22],
-    iconAnchor: [11, 11]
+  // 3. OpenStreetMap Standard Street View (Free Toggle Option)
+  const streetTiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
   });
 
-  currentEmergencyMarker = L.marker(defaultCenter, { icon: pulseIcon }).addTo(map);
+  // Pure Satellite without labels (Optional Toggle)
+  const pureSatellite = L.layerGroup([satelliteTiles]);
+
+  // Set Hybrid Satellite as DEFAULT basemap
+  hybridSatellite.addTo(map);
+
+  // Add Layer Switcher Control in top-right corner
+  const baseMaps = {
+    "ðŸ›°ï¸ Satellite (Hybrid)": hybridSatellite,
+    "ðŸŒ Pure Satellite": pureSatellite,
+    "ðŸ—ºï¸ Street Map": streetTiles
+  };
+  L.control.layers(baseMaps, null, { position: "topright" }).addTo(map);
+
+  // Google Maps Style Red Teardrop Pin Marker
+  const googlePinIcon = L.divIcon({
+    className: "custom-emergency-pin",
+    html: `
+      <div class="google-pin-container">
+        <svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <filter id="pin-shadow" x="-20%" y="-10%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.5"/>
+          </filter>
+          <path d="M16 0C7.16344 0 0 7.16344 0 16C0 28 16 42 16 42C16 42 32 28 32 16C32 7.16344 24.8366 0 16 0Z" fill="#EA4335" filter="url(#pin-shadow)"/>
+          <path d="M16 2C8.26801 2 2 8.26801 2 16C2 26.5 16 39.5 16 39.5C16 39.5 30 26.5 30 16C30 8.26801 23.732 2 16 2Z" fill="#D93025"/>
+          <circle cx="16" cy="16" r="6.5" fill="#FFFFFF"/>
+          <circle cx="16" cy="16" r="3.5" fill="#B31412"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [32, 42],
+    iconAnchor: [16, 42],
+    popupAnchor: [0, -38]
+  });
+
+  currentEmergencyMarker = L.marker(defaultCenter, { icon: googlePinIcon }).addTo(map);
+  
+  // Pulsing Emergency Hazard Radius on Satellite Map
+  currentEmergencyCircle = L.circle(defaultCenter, {
+    color: '#ef4444',
+    fillColor: '#ef4444',
+    fillOpacity: 0.22,
+    weight: 2,
+    radius: 200
+  }).addTo(map);
+
   currentEmergencyMarker.bindPopup("<b>Emergency Location</b><br>Panagal Park, T. Nagar").openPopup();
 }
 
@@ -433,6 +491,18 @@ function selectSampleCall(index, autoAnalyze = true) {
     b.classList.toggle("active", idx === index);
   });
 
+  const callIdTag = document.getElementById("call-id-tag");
+  if (callIdTag) {
+    const code = index === 1 ? "C-2041 GUINDY" : (index === 0 ? "C-2040 T. NAGAR" : "C-2039 ADYAR");
+    callIdTag.textContent = `LIVE CALL #${code}`;
+  }
+
+  // Highlight active row in CALL QUEUE (Panel 7)
+  const queueRows = document.querySelectorAll(".queue-row");
+  queueRows.forEach((row, rIdx) => {
+    row.classList.toggle("active", rIdx === index);
+  });
+
   document.getElementById("caller-name").textContent = call.caller_name || "Demo Caller";
   document.getElementById("caller-phone").textContent = call.caller_phone || "Line 108";
   document.getElementById("caller-lang").textContent = call.language || "Multi-lingual";
@@ -481,9 +551,9 @@ function initWebSpeechAPI() {
 
     document.getElementById("call-state-badge").textContent = "LISTENING";
     document.getElementById("call-state-badge").className = "badge badge-critical";
-    document.getElementById("mic-status-label").innerHTML = '<span style="color:#10b981;">● Live Recording</span>';
+    document.getElementById("mic-status-label").innerHTML = '<span style="color:#10b981;">â— Live Recording</span>';
     document.getElementById("mic-feedback-detail").innerHTML = 
-      '<span style="color:#10b981;">● Mic open. Speak as the caller — words will stream below live!</span>';
+      '<span style="color:#10b981;">â— Mic open. Speak as the caller â€” words will stream below live!</span>';
 
     const indicator = document.getElementById("stream-indicator");
     indicator.className = "tag-live listening";
@@ -984,82 +1054,123 @@ async function triggerAnalysisSilently(text) {
  * --------------------------------------------------------------------------
  */
 function updateDashboardUI(data) {
+  // Helper to flash updated field in lime per Design Brief
+  function flashField(elementId, textValue) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.textContent = textValue;
+    el.classList.remove("flash-lime");
+    void el.offsetWidth; // trigger reflow
+    el.classList.add("flash-lime");
+    setTimeout(() => el.classList.remove("flash-lime"), 1200);
+  }
+
   // A. Incident Type & Severity
-  document.getElementById("incident-type-title").textContent = data.emergency_display;
-  
+  const typeDisplay = (data.emergency_display || "Road accident").split("/")[0].trim();
+  flashField("incident-type-title", typeDisplay);
+
   const severityBadge = document.getElementById("severity-badge");
-  severityBadge.textContent = data.severity;
-  severityBadge.className = "badge";
-  if (data.severity === "CRITICAL") {
-    severityBadge.classList.add("badge-critical");
-  } else if (data.severity === "HIGH") {
-    severityBadge.classList.add("badge-high");
-  } else {
-    severityBadge.classList.add("badge-info");
+  const sevFrame = document.getElementById("severity-badge-frame");
+  const segLow = document.querySelector(".sev-seg.low");
+  const segMod = document.querySelector(".sev-seg.mod");
+  const segCrit = document.querySelector(".sev-seg.crit");
+
+  if (severityBadge) {
+    if (data.severity === "CRITICAL") {
+      severityBadge.textContent = "CRITICAL - P1 SUGGESTED";
+      if (sevFrame) sevFrame.style.borderColor = "#FF3B30";
+      if (segLow) segLow.classList.add("active");
+      if (segMod) segMod.classList.add("active");
+      if (segCrit) segCrit.classList.add("active");
+    } else if (data.severity === "HIGH") {
+      severityBadge.textContent = "HIGH - P2 SUGGESTED";
+      if (sevFrame) sevFrame.style.borderColor = "#F5B83D";
+      if (segLow) segLow.classList.add("active");
+      if (segMod) segMod.classList.add("active");
+      if (segCrit) segCrit.classList.remove("active");
+    } else {
+      severityBadge.textContent = "MODERATE - P3 SUGGESTED";
+      if (sevFrame) sevFrame.style.borderColor = "#A3E635";
+      if (segLow) segLow.classList.add("active");
+      if (segMod) segMod.classList.remove("active");
+      if (segCrit) segCrit.classList.remove("active");
+    }
   }
 
-  // B. Suggested Responder & Casualties
-  document.getElementById("suggested-responder").textContent = data.suggested_responder;
-  document.getElementById("casualty-count").textContent = 
-    data.casualty_count > 1 ? `${data.casualty_count} People Injured` : "1 Person";
+  // B. Suggested Responder & Chips
+  const respAmbulance = document.getElementById("resp-ambulance");
+  const respPolice = document.getElementById("resp-police");
+  const respFire = document.getElementById("resp-fire");
 
-  // C. Keyword Chips
-  const chipsContainer = document.getElementById("keyword-chips");
-  chipsContainer.innerHTML = "";
-  if (data.matched_keywords && data.matched_keywords.length > 0) {
-    data.matched_keywords.forEach(kw => {
-      const chip = document.createElement("span");
-      chip.className = "chip";
-      chip.textContent = kw;
-      chipsContainer.appendChild(chip);
-    });
-  } else {
-    chipsContainer.innerHTML = '<span class="chip">triage rule match</span>';
+  if (respAmbulance && respPolice && respFire) {
+    respAmbulance.classList.remove("active");
+    respPolice.classList.remove("active");
+    respFire.classList.remove("active");
+
+    const respText = (data.suggested_responder || "").toUpperCase();
+    if (respText.includes("FIRE")) {
+      respFire.classList.add("active");
+    } else if (respText.includes("POLICE")) {
+      respPolice.classList.add("active");
+    } else {
+      respAmbulance.classList.add("active");
+    }
   }
 
-  // D. Operator Follow-Up Questions
+  // C. Casualties & Danger
+  flashField("casualty-count", data.casualty_count > 1 ? `${data.casualty_count} people` : "1 person");
+  
+  const dangerDesc = (data.matched_keywords && data.matched_keywords.length > 0)
+    ? data.matched_keywords.slice(0, 3).join(", ")
+    : "Severe acute incident";
+  flashField("incident-danger-val", dangerDesc);
+
+  // D. Location & Landmark
+  if (data.location && data.location.name) {
+    flashField("incident-location-val", data.location.name);
+    const confPct = Math.round((data.location.confidence || 0.92) * 100);
+    const landmarkText = `${data.location.name.split(",")[0]} (${confPct}%)`;
+    flashField("incident-landmark-val", landmarkText);
+
+    const matchClause = document.getElementById("landmark-match-clause");
+    if (matchClause) {
+      const phrase = data.location.matched_phrase || "the caller's voice";
+      matchClause.innerHTML = `Near ${phrase} &minus;&gt; <strong>${data.location.name.split(",")[0]}</strong> (${confPct}% match)`;
+    }
+
+    focusLocation(data.location.lat, data.location.lng, data.location.name, data.emergency_display);
+  }
+
+  // E. Operator Follow-Up Questions (Interactive Checklist)
   const questionsList = document.getElementById("operator-questions-list");
-  questionsList.innerHTML = "";
-  if (data.operator_questions && data.operator_questions.length > 0) {
-    data.operator_questions.forEach(q => {
-      const li = document.createElement("li");
-      li.textContent = q;
-      questionsList.appendChild(li);
+  if (questionsList && data.operator_questions && data.operator_questions.length > 0) {
+    questionsList.innerHTML = "";
+    data.operator_questions.forEach((q, idx) => {
+      const label = document.createElement("label");
+      label.className = "check-item" + (idx === 0 ? " asked" : "");
+      label.innerHTML = `
+        <input type="checkbox" ${idx === 0 ? "checked" : ""} onchange="this.parentElement.classList.toggle('asked', this.checked)">
+        <span class="custom-checkbox"></span>
+        <span class="prompt-text">${q}</span>
+      `;
+      questionsList.appendChild(label);
     });
   }
 
-  // E. First Aid Protocol
+  // F. First Aid Protocol Voice Box
   if (data.first_aid) {
-    document.getElementById("first-aid-title").textContent = data.first_aid.title;
-    document.getElementById("first-aid-disclaimer").innerHTML = 
-      `<i class="fa-solid fa-triangle-exclamation"></i> ${data.first_aid.disclaimer}`;
+    const faTitle = document.getElementById("first-aid-title");
+    if (faTitle) {
+      faTitle.textContent = `FIRST-AID VOICE â€” ${data.first_aid.title.toUpperCase()}`;
+    }
 
-    const stepsList = document.getElementById("first-aid-steps");
-    stepsList.innerHTML = "";
-    (data.first_aid.steps || []).forEach(step => {
-      const li = document.createElement("li");
-      li.textContent = step;
-      stepsList.appendChild(li);
-    });
+    const stepsText = (data.first_aid.steps || []).join(". ");
+    const faBody = document.getElementById("first-aid-steps-text");
+    if (faBody) {
+      faBody.textContent = stepsText;
+    }
 
-    currentVoicePrompt = data.first_aid.voice_prompt || (data.first_aid.steps || []).join(". ");
-  }
-
-  // F. Landmark Resolution and Map Pin
-  if (data.location && data.location.lat && data.location.lng) {
-    const loc = data.location;
-    document.getElementById("landmark-name").textContent = loc.name;
-    document.getElementById("landmark-coords").innerHTML = 
-      `<i class="fa-solid fa-compass"></i> GPS: ${loc.lat.toFixed(4)}° N, ${loc.lng.toFixed(4)}° E`;
-    
-    document.getElementById("matched-phrase-text").textContent = 
-      loc.matched_phrase ? `"${loc.matched_phrase}"` : "General Emergency Region";
-
-    const confBadge = document.getElementById("landmark-confidence-badge");
-    const confPct = Math.round((loc.confidence || 0.9) * 100);
-    confBadge.textContent = `${confPct}% Confirmed`;
-
-    focusLocation(loc.lat, loc.lng, loc.name, data.emergency_display);
+    currentVoicePrompt = data.first_aid.voice_prompt || stepsText;
   }
 }
 
@@ -1070,7 +1181,7 @@ function updateDashboardUI(data) {
  */
 function focusLocation(lat, lng, title, incidentInfo) {
   if (!map) return;
-  map.flyTo([lat, lng], 15, {
+  map.flyTo([lat, lng], 16, {
     animate: true,
     duration: 1.2
   });
@@ -1078,8 +1189,25 @@ function focusLocation(lat, lng, title, incidentInfo) {
   if (currentEmergencyMarker) {
     currentEmergencyMarker.setLatLng([lat, lng]);
     currentEmergencyMarker.bindPopup(
-      `<strong>${title}</strong><br><span style="color:#ef4444;font-weight:700;">${incidentInfo}</span>`
+      `<div style="text-align:left; font-family:'Plus Jakarta Sans',sans-serif; min-width:180px;">` +
+      `<strong style="font-size:13px; color:#0f172a; display:block; margin-bottom:2px;">${title}</strong>` +
+      `<span style="color:#dc2626; font-weight:700; font-size:11.5px; display:block; margin-bottom:2px;">ðŸš¨ ${incidentInfo}</span>` +
+      `<span style="color:#64748b; font-size:10.5px; font-family:monospace;">GPS: ${lat.toFixed(4)}Â° N, ${lng.toFixed(4)}Â° E</span>` +
+      `</div>`
     ).openPopup();
+  }
+
+  // Update or create pulsing emergency zone on the satellite map
+  if (currentEmergencyCircle) {
+    currentEmergencyCircle.setLatLng([lat, lng]);
+  } else {
+    currentEmergencyCircle = L.circle([lat, lng], {
+      color: '#ef4444',
+      fillColor: '#ef4444',
+      fillOpacity: 0.22,
+      weight: 2,
+      radius: 200
+    }).addTo(map);
   }
 }
 
@@ -1168,16 +1296,25 @@ function setupEventListeners() {
     });
   }
 
+  // Suggested Responder Chips Override
+  document.querySelectorAll(".chip-responder").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".chip-responder").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+    });
+  });
+
   // Approve & Dispatch Button (Human-in-the-Loop)
   const btnDispatch = document.getElementById("btn-dispatch");
   if (btnDispatch) {
     btnDispatch.addEventListener("click", () => {
       const alertBox = document.getElementById("dispatch-alert");
-      alertBox.classList.remove("hidden");
-      alertBox.style.animation = "pulse-green 1s ease";
-      setTimeout(() => {
-        alertBox.classList.add("hidden");
-      }, 4000);
+      if (alertBox) {
+        alertBox.classList.remove("hidden");
+        setTimeout(() => {
+          alertBox.classList.add("hidden");
+        }, 4000);
+      }
     });
   }
 }
