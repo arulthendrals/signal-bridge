@@ -835,3 +835,198 @@ body.theme-void {
 .leaflet-popup-tip {
   background: #121212 !important;
 }
+
+
+/* ==========================================================================
+   MOBILE RESPONSIVE â€” stacks panels vertically on small screens
+   ========================================================================== */
+
+@media (max-width: 900px) {
+
+  /* Hide top meta strip on small screens */
+  .top-meta-strip {
+    display: none;
+  }
+
+  /* Floating nav pill â€” compact on mobile */
+  .floating-nav-container {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    padding: 8px 12px;
+    z-index: 100;
+  }
+
+  .floating-nav-pill {
+    width: 100%;
+    border-radius: 8px;
+    padding: 8px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav-brand-logo {
+    font-size: 11px;
+  }
+
+  .nav-pill-item {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  .nav-divider {
+    display: none;
+  }
+
+  /* Hero section â€” smaller on mobile */
+  .hero-section {
+    padding: 12px 16px 8px;
+    gap: 8px;
+  }
+
+  .hero-title-block h1 {
+    font-size: clamp(22px, 5vw, 36px);
+    line-height: 1.1;
+  }
+
+  .hero-title-block p {
+    font-size: 10px;
+  }
+
+  .hero-telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* Pipeline tracker â€” scroll horizontally */
+  .pipeline-tracker-row {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 6px 12px;
+    gap: 6px;
+  }
+
+  .pipeline-step {
+    flex-shrink: 0;
+    font-size: 9px;
+  }
+
+  /* MAIN GRID â€” single column stacked vertically */
+  .dashboard-main-grid {
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px;
+    gap: 10px;
+  }
+
+  /* Every panel takes full width */
+  .ops-panel {
+    width: 100%;
+    min-height: 200px;
+  }
+
+  /* Live Call panel â€” allow natural height */
+  .panel-live-call {
+    min-height: 220px;
+  }
+
+  /* Incident card â€” full width */
+  .panel-incident-card {
+    min-height: 260px;
+  }
+
+  /* Map panel â€” fixed height on mobile */
+  .panel-map {
+    min-height: 260px;
+  }
+
+  #map-container {
+    height: 220px !important;
+  }
+
+  /* Dispatch button â€” full width on mobile */
+  .btn-dispatch-confirm {
+    font-size: 13px;
+    padding: 14px;
+  }
+
+  /* Call queue â€” shorter rows */
+  .queue-row {
+    font-size: 10px;
+  }
+
+  /* Footer â€” stack vertically */
+  .console-running-footer {
+    flex-direction: column;
+    gap: 4px;
+    font-size: 9px;
+    text-align: center;
+  }
+
+  /* Responder chips â€” wrap */
+  .responder-chips-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* First aid steps â€” readable */
+  .fa-voice-body {
+    font-size: 11px;
+  }
+
+  /* Incident fields â€” single column */
+  .incident-field-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  /* Landmarks quick nav â€” wrap */
+  .landmark-quick-nav {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .landmark-btn {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+}
+
+/* Very small phones (< 480px) */
+@media (max-width: 480px) {
+  .floating-nav-pill {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  .nav-pill-item {
+    font-size: 8px;
+    padding: 2px 5px;
+  }
+
+  .hero-title-block h1 {
+    font-size: 20px;
+  }
+
+  .hero-telemetry-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .telemetry-value {
+    font-size: 20px;
+  }
+
+  .dashboard-main-grid {
+    padding: 0 6px;
+    gap: 8px;
+  }
+
+  .panel-header-strip {
+    font-size: 9px;
+    height: 28px;
+  }
+}
