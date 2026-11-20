@@ -24,6 +24,11 @@ let liveRecognition = null;
 let isLiveCallActive = false;
 let accumulatedFinalTranscript = "";
 
+// Real-time auto-analysis: fires AI analysis while caller is STILL speaking
+let autoAnalysisTimer = null;       // debounce timer
+let lastAnalyzedTranscript = "";    // avoid re-analyzing same text
+const AUTO_ANALYSIS_DELAY_MS = 2500; // analyze 2.5s after last new word
+
 // -----------------------------------------------------------------------------
 // EMBEDDED OFFLINE DATASETS (For zero-dependency local file execution)
 // -----------------------------------------------------------------------------
@@ -578,6 +583,38 @@ function initWebSpeechAPI() {
     // Diagnostics Step 2 (Speech text captured)
     const totalWords = (accumulatedFinalTranscript + " " + interimText).trim().split(/\s+/).filter(Boolean).length;
     setDebugStep(2, "ok", `Captured ${totalWords} words live`);
+
+    // â”€â”€ REAL-TIME AUTO-ANALYSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Every time new speech arrives, reset a short debounce timer.
+    // When the caller pauses for 2.5s we fire analysis â€” so the form fills
+    // WHILE the caller is still on the call, not after they hang up.
+    const currentText = (accumulatedFinalTranscript + " " + interimText).trim();
+    if (currentText.split(/\s+/).length >= 5) {   // wait for at least 5 words
+      clearTimeout(autoAnalysisTimer);
+      autoAnalysisTimer = setTimeout(async () => {
+        if (currentText !== lastAnalyzedTranscript && currentText.length > 20) {
+          lastAnalyzedTranscript = currentText;
+          setDebugStep(3, "busy", "Auto-analyzing live speech...");
+          try {
+            const response = await fetch(`${API_BASE}/api/analyze-text`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: currentText, language: liveRecognition.lang || "en-IN" })
+            });
+            if (response.ok) {
+              const data = await response.json();
+              updateDashboardUI(data);
+              setDebugStep(3, "ok", "Live AI update applied");
+              setDebugStep(4, "ok", `Triage: ${data.emergency_type || "Detecting..."}`);
+            }
+          } catch (err) {
+            // Silent fail â€” don't interrupt the live call UI
+            console.warn("[AutoAnalysis] Error:", err);
+          }
+        }
+      }, AUTO_ANALYSIS_DELAY_MS);
+    }
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   };
 
   liveRecognition.onerror = (event) => {
@@ -646,6 +683,8 @@ function startLiveCall() {
 
   isLiveCallActive = true;
   accumulatedFinalTranscript = "";
+  lastAnalyzedTranscript = "";      // reset auto-analysis state for new call
+  clearTimeout(autoAnalysisTimer);  // cancel any pending analysis
   setTranscriptDisplay("", "");
 
   document.getElementById("btn-start-live-call").classList.add("hidden");
